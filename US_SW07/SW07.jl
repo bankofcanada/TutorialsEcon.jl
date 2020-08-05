@@ -6,7 +6,7 @@ Paper: Smets, F., Wouters, R., 2007. Shocks and frictions in US business cycles:
 """
 module SW07
 
-using SSpace.ModelBase
+using ModelBaseEcon
 
 model = Model()
 
