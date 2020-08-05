@@ -4,8 +4,7 @@
 
 ## Data
 
-The replication data can be downloaded from http://doi.org/10.3886/E116269V1
-You may need to create an account, if you don't already have one, download the zip file and extract its contents in the data/116269-V1/ directory.
-
-## 
+The replication data can be downloaded from http://doi.org/10.3886/E116269V1<br>
+You may need to create an account, if you don't already have one.
+Download the zip file and extract its contents in the data/116269-V1/ directory.
 
