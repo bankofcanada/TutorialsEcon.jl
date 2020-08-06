@@ -10,6 +10,11 @@ makedocs(
     pages = [
         "Tutorials" => [
             "Smets and Wouters 2007" => "US_SW07/main.md",
+        ],
+        "Reference" => [
+            "TimeSeriesEcon" => "timeseriesecon.md",
+            "ModelBaseEcon" => "modelbaseecon.md",
+            "StateSpaceEcon" => "statespaceecon.md",
         ]
     ]
 )
