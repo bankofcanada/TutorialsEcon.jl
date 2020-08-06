@@ -3,14 +3,26 @@ using StateSpaceEcon
 using ModelBaseEcon
 using TimeSeriesEcon
 
+tutorials = []
+for d in readdir("src")
+    isdir(joinpath("src", d)) || continue
+    try
+        title = open(joinpath("src", d, "main.md")) do f
+            strip(readline(f), ['#', ' '])
+        end
+        push!(tutorials, string(title) => string(joinpath(d, "main.md")))
+    catch
+        nothing
+    end
+end
+
+
 
 makedocs(
     sitename="StateSpaceEcon Tutorials",
     format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),
     pages = [
-        "Tutorials" => [
-            "Smets and Wouters 2007" => "US_SW07/main.md",
-        ],
+        "Tutorials" => tutorials,
         "Reference" => [
             "TimeSeriesEcon" => "timeseriesecon.md",
             "ModelBaseEcon" => "modelbaseecon.md",
