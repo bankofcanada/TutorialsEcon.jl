@@ -1,4 +1,6 @@
 [deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+DocumenterTools = "35a29f4d-8980-5a13-9543-d66fff28ecb8"
 ModelBaseEcon = "1d16192e-b65e-11ea-11ed-0789cee22d2f"
 StateSpaceEcon = "e4c825b0-b65c-11ea-0b5a-6176b64e7b7f"
 TimeSeriesEcon = "8b6756d2-c55c-11ea-2998-5f67ea17da60"
