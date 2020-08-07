@@ -1,6 +1,7 @@
 # ModelBaseEcon Reference
 
 ```@contents
+Pages = ["modelbaseecon.md"]
 ```
 
 ## Options
