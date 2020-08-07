@@ -82,13 +82,19 @@ m.flags
 Options are values that adjust the operations of the algorithms. For example, we
 have `tol` and `maxiter`, which set the desired accuracy and maximum number of
 iterations for the iterative solvers. These can be adjusted as needed at any
-time.
+time. Another useful option is `verbose`, which controls the verbosity.
+
+Many functions in `StateSpaceEcon` have optional arguments by the same names as
+the names of model options. When the argument is not explicitly given in the
+function call, these functions will use the value from the model option of the
+same name.
 
 ```@repl sw07
+m.verbose = true
 m.options
 ```
 
-## Part 2: The Steady State
+## Part 2: The Steady state solution
 
 The steady state is a special solution of the dynamic system, one that remains
 constant over time. It is important on its own, but also it can be useful in
@@ -110,7 +116,7 @@ accessed via `m.sstate`.
 m.sstate
 ```
 
-### [Steady State constraints](@id steady_state_constraints)
+### [Steady state constraints](@id steady_state_constraints)
 
 Sometimes the steady state is not unique, and one can use steady state
 constraints to specify the particular steady state one wants. Also, if the model
@@ -137,8 +143,61 @@ m.sstate
     In that case, all calls to the [`@steadystate`](@ref) macro must be made after calling
    [`@initialize`](@ref).
 
-### Solve for the Steady State
+### Solve for the steady state
 
+The steady state solution is stored within the model object. Before solving, we
+have to specify an initial condition. If the model is linear, this makes no
+difference, but in a non-linear model a good or a bad initial guess might be the
+difference between success and failure of the steady state solver.
+
+We can do this by calling [`clear_sstate!`](@ref). This call removes any
+previously stored solution, sets the initial condition, and runs the pre-solve
+pass of the steady state solver. The initial guess can be given with the `lvl`
+and `slp` arguments; if not, an initial guess is chosen automatically.
+
+Once that's done, we call [`sssolve!`](@ref) to find the steady state. This
+function returns a `Vector{Float64}` containing the steady state solution, but
+it also writes that solution into the model object. The vector is of length
+`2*nvariables(m)` and contains the level and the slope for each variable.
+
+```@repl sw07
+clear_sstate!(m)
+sssolve!(m);
+```
+
+If in doubt, we can use [`check_sstate`](@ref) to make sure the steady state solution
+stored in the model object indeed satisfies the steady state system of equations.
+This function returns the number of equations that are not satisfied.
+A value of 0 is what we want to see. In verbose mode, the it also lists the
+problematic equations and their residuals.
+
+```@repl sw07
+check_sstate(m)
+```
+
+### Examine the steady state
+
+We can access the steady state solution via `m.sstate` using the dot notation.
+```@repl sw07
+m.sstate.dc
+```
+
+We can also assign new values, but we should be careful to make sure it remains a valid steady state solution.
+```@repl sw07
+m.sstate.dc.slope = 0.001
+check_sstate(m)
+```
+
+Okay, let's undo that.
+```@repl sw07
+m.sstate.dc.slope = 0
+check_sstate(m)
+```
+
+We can examine the entire steady state solution with [`printsstate`](@ref).
+```@repl sw07
+printsstate(m)
+```
 
 ## Part 3: Impulse response
 
