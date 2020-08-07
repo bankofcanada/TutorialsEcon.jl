@@ -6,14 +6,10 @@ using TimeSeriesEcon
 tutorials = []
 for d in readdir("src")
     isdir(joinpath("src", d)) || continue
-    try
-        title = open(joinpath("src", d, "main.md")) do f
-            strip(readline(f), ['#', ' '])
-        end
-        push!(tutorials, string(title) => string(joinpath(d, "main.md")))
-    catch
-        nothing
+    title = open(joinpath("src", d, "main.md")) do f
+        strip(readline(f), ['#', ' '])
     end
+    push!(tutorials, string(title) => string(joinpath(d, "main.md")))
 end
 
 
@@ -21,7 +17,8 @@ end
 makedocs(
     sitename="StateSpaceEcon Tutorials",
     format=Documenter.HTML(prettyurls=get(ENV, "CI", nothing) == "true"),
-    pages = [
+    pages=[
+        "index.md",
         "Tutorials" => tutorials,
         "Reference" => [
             "TimeSeriesEcon" => "timeseriesecon.md",
