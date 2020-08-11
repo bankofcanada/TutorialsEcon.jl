@@ -174,9 +174,58 @@ printsstate(m)
 
 
 ## ##########################################################################
-#### Part 3: Impulse response
+#### Part 3: Simulation plan
+
+p = Plan(m, 2000Q1:2039Q4)
+
+init = p.range[1:m.maxlag]
+term = p.range[end - m.maxlead + 1:end]
+
+exog = zerodata(m, p)
+
+# set initial conditions
+for var in variables(m)
+    exog[init, var] = m.sstate[var].level
+end
+
+# final conditions - use fcslope, no need to set anything in exog
+sim = simulate(m, exog, p; fctype=fcslope)
 
 
+# shock epinf
+exog[last(init) + 1, :epinf] = 0.1
+irf = simulate(m, exog, p; fctype=fcslope)
 
+using Plots
 
+using RecipesBase
+@recipe plot(sd::SimData...; vars=nothing, names=nothing) = begin
+    if vars === nothing
+        error("Must specify variables to plot")
+    elseif vars == :all
+        vars = StateSpaceEcon._names(sd[1])
+    end
+    if length(vars) > 10
+        error("Too many variables. Split into pages.")
+    end
+    if names === nothing
+        names = ["data$i" for i = 1:length(sd)]
+    end
+    layout --> length(vars)
+    title --> reshape(map(string, [vars...]), 1, :)
+    label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
+    linewidth --> 2
+    left_margin --> 4 * Plots.mm
+    for s in sd
+        for v in vars
+            @series begin
+                s[v]
+            end
+        end
+    end
+end
+
+p = plot(sim, irf, vars=("pinf", "y", "r", "lab"), names=("SS", "IRF"))
+savefig(p, "irf.png")
+display(p)
 

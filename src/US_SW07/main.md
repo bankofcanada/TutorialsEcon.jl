@@ -182,7 +182,8 @@ We can access the steady state solution via `m.sstate` using the dot notation.
 m.sstate.dc
 ```
 
-We can also assign new values, but we should be careful to make sure it remains a valid steady state solution.
+We can also assign new values, but we should be careful to make sure it remains
+a valid steady state solution.
 ```@repl sw07
 m.sstate.dc.slope = 0.001
 check_sstate(m)
