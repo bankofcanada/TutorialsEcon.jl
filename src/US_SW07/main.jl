@@ -9,12 +9,44 @@ mypath = dirname(@__FILE__)
 
 using Pkg
 Pkg.activate(joinpath(mypath, "..", ".."))
+using Plots
+using Random
+using Distributions
 
 using ModelBaseEcon
 using StateSpaceEcon
 using TimeSeriesEcon
 
 # using  ModelBaseEcon: parameters, variables, shocks, equations
+
+## ##########################################################################
+
+using RecipesBase
+@recipe plot(sd::SimData...; vars=nothing, names=nothing) = begin
+    if vars === nothing
+        error("Must specify variables to plot")
+    elseif vars == :all
+        vars = StateSpaceEcon._names(sd[1])
+    end
+    if length(vars) > 10
+        error("Too many variables. Split into pages.")
+    end
+    if names === nothing
+        names = ["data$i" for i = 1:length(sd)]
+    end
+    layout --> length(vars)
+    title --> reshape(map(string, [vars...]), 1, :)
+    label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
+    linewidth --> 2
+    left_margin --> 4 * Plots.mm
+    for s in sd
+        for v in vars
+            @series begin
+                s[v]
+            end
+        end
+    end
+end
 
 ## ##########################################################################
 #### Part 1: The model
@@ -179,7 +211,7 @@ printsstate(m)
 p = Plan(m, 2000Q1:2039Q4)
 
 init = p.range[1:m.maxlag]
-term = p.range[end - m.maxlead + 1:end]
+term = p.range[end .+ (-m.maxlead + 1:0)]
 
 exog = zerodata(m, p)
 
@@ -189,43 +221,71 @@ for var in variables(m)
 end
 
 # final conditions - use fcslope, no need to set anything in exog
-sim = simulate(m, exog, p; fctype=fcslope)
+ss = simulate(m, exog, p; fctype=fcslope)
+
+(ss ≈ steadystatedata(m, p)) |> display
 
 
-# shock epinf
+# Impulse response when we shock epinf
 exog[last(init) + 1, :epinf] = 0.1
 irf = simulate(m, exog, p; fctype=fcslope)
 
-using Plots
+vars = ("pinf", "y", "r", "lab")
 
-using RecipesBase
-@recipe plot(sd::SimData...; vars=nothing, names=nothing) = begin
-    if vars === nothing
-        error("Must specify variables to plot")
-    elseif vars == :all
-        vars = StateSpaceEcon._names(sd[1])
-    end
-    if length(vars) > 10
-        error("Too many variables. Split into pages.")
-    end
-    if names === nothing
-        names = ["data$i" for i = 1:length(sd)]
-    end
-    layout --> length(vars)
-    title --> reshape(map(string, [vars...]), 1, :)
-    label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
-    linewidth --> 2
-    left_margin --> 4 * Plots.mm
-    for s in sd
-        for v in vars
-            @series begin
-                s[v]
-            end
-        end
-    end
+plt = plot(ss, irf, vars=vars, names=("SS", "IRF"), titlefont=font(11))
+savefig(plt, "irf.png")
+display(plt)
+
+## ##########################################################################
+# Stochastic shock 
+
+shock = 2004Q1 .+ (0:7)  # shock 8 quarters starting 2001
+
+p = Plan(m, 2000Q1:2049Q3)  # simulate 15 years beyond the last shock  
+
+init = p.range[1:m.maxlag]
+term = p.range[end .+ (-m.maxlead + 1:0)]
+
+exog = zerodata(m, p)
+
+# set initial conditions to steady state
+for v in variables(m)
+    exog[init, v] = m.sstate.:($v).level
 end
 
-p = plot(sim, irf, vars=("pinf", "y", "r", "lab"), names=("SS", "IRF"))
-savefig(p, "irf.png")
-display(p)
+ss = steadystatedata(m, p)
+
+# assign shocks according to their distributions
+shk_dist = (ea = Normal(0.0, 0.4618), 
+            eb = Normal(0.0, 1.8513), 
+            eg = Normal(0.0, 0.6090), 
+            eqs = Normal(0.0, 0.6017), 
+            em = Normal(0.0, 0.2397), 
+            epinf = Normal(0.0, 0.1455), 
+            ew = Normal(0.0, 0.2089))
+
+Random.seed!(1234);
+
+for (s, d) in pairs(shk_dist)
+    exog[shock, s] = rand(d, length(shock))
+end
+
+sim_a = simulate(m, exog, p; fctype=fcslope);
+sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
+
+plt_attrs() = (layout = @layout([a b; c d; e f; g _]),
+    titlefont = font(11),
+    size = (600, 800),
+    linewidth = 1.5,
+    legend = false, 
+    names = ("SS", "Ant", "Unant"))
+
+plt = plot(ss, sim_a, sim_u, vars=shocks(m); plt_attrs()...)
+savefig(plt, "shocks.png")
+display(plt)
+
+plt = plot(ss, sim_a, sim_u, vars=keys(m.autoexogenize); plt_attrs()...)
+savefig(plt, "responses.png")
+display(plt)
+
 
