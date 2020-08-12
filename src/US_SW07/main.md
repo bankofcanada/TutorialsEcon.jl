@@ -10,10 +10,40 @@ using StateSpaceEcon
 using ModelBaseEcon
 using TimeSeriesEcon
 
-using  ModelBaseEcon: parameters, variables, shocks, equations
+using Plots
+using Random
+using Distributions
 
 # We need the model file SW07.jl to be on the search path for modules.
-unique!(push!(LOAD_PATH, joinpath(pwd(), "..", "..", "src", "US_SW07"))) # hide
+unique!(push!(LOAD_PATH, realpath("."))) # hide
+
+
+##### This is temporary until we can add it to StateSpaceEcon
+@recipe plot(sd::SimData...; vars=nothing, names=nothing) = begin
+    if vars === nothing
+        error("Must specify variables to plot")
+    elseif vars == :all
+        vars = StateSpaceEcon._names(sd[1])
+    end
+    if length(vars) > 10
+        error("Too many variables. Split into pages.")
+    end
+    if names === nothing
+        names = ["data$i" for i = 1:length(sd)]
+    end
+    layout --> length(vars)
+    title --> reshape(map(string, [vars...]), 1, :)
+    label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
+    linewidth --> 2
+    left_margin --> 4 * Plots.mm
+    for s in sd
+        for v in vars
+            @series begin
+                s[v]
+            end
+        end
+    end
+end
 
 ```
 
@@ -202,9 +232,147 @@ printsstate(m)
 
 ## Part 3: Impulse response
 
+### Simulation plan
 
-## Part 4: I don't know what this is
+Before we can simulate the model, we have to decide on the length of the
+simulation and for each period what data is available, i.e. what values are
+known or exogenous. This is done with an object of type [`Plan`](@ref).
 
+To create a plan all we need is the model and a period for the simulation.
+```@repl sw07
+sim_rng = 2000Q1:2039Q4
+p = Plan(m, sim_rng)
+```
+
+The plan shows us a list of dates or ranges and for each the list of exogenous
+values (variables or shocks). By default, all shocks are exogenous and all
+variables are endogenous.
+
+We also see that the range of the plan has been extended before and after the
+simulation range. This is necessary, because we need to set initial and final
+conditions. The number of periods for initial conditions is equal to the largest
+lag in the model. Similarly, terminal conditions have to be imposed over as many
+periods as the largest lead.
+```@repl sw07
+p.range          # the full range of the plan
+init = first(p.range):first(sim_rng)-1   # the range for initial conditions
+term = last(sim_rng)+1:last(p.range)     # the range for final conditions
+length(init) == m.maxlag
+length(term) == m.maxlead
+```
+
+### Exogenous data
+
+We have to provide the data for the simulation. We start with all zeros and fill
+in the external data, which must include initial conditions for all variable and
+shocks, exogenous values (according to the plan) and possibly final conditions.
+
+#### Initial conditions
+
+In this example, we want to simulate an impulse response, so it makes sense to
+start from the steady state and that's what we set as the initial condition.
+The initial conditions for the shocks we leave at 0.
+```@repl sw07
+exog = zerodata(m, p);
+for var in variables(m)
+    exog[init, var] = m.sstate[var].level
+end
+exog
+```
+
+!!! tip "Pro tip"
+    The above works here because the steady state is stationary, i.e. all slopes
+    are zero. If we had a model with linear growth steady state, we could do
+    something like this (see [`@rec`](@ref)):
+    ```julia
+    for var in variables(m)
+        ss = m.sstate[var]
+        exog[init, var] = ss.level
+        if ss.slope != 0
+            # recursively update by adding the slope
+            tmp = exog[var]
+            @rec tmp[t] = tmp[t-1] + ss.slope init[2:end]
+        end
+    end
+    ```
+
+#### Final conditions
+
+For the final conditions we can use the steady state again, because we expect
+that the economy will eventually return to it, if it's given enough time after
+the last shock. We can do this by assigning the values of the steady state to
+the final periods after the simulation, similar to what we did with the initial
+conditions.
+
+Alternatively, we can specify that we want to use the steady state in the call
+to simulate by passing `fctype=fclevel`. Yet another possibility is to set the
+final condition so that the solution slope matches the slope of the steady state
+by setting `fctype=fcslope`. In both cases, we don't need to set anything the
+exogenous data array because those values would be ignored.
+
+!!! tip "Pro tip"
+    In this model the two ways of using the steady state for final conditions
+    are equivalent, because the steady state here is stationary and unique. When
+    the steady state has non-zero slope, or if the steady state has zero slope
+    but the level is not unique, we should use `fctype=fcslope`.
+
+#### A quick sanity check
+
+If we were to run a simulation where the economy started in the steady state and
+there were no shocks at all, we'd expect that the economy would remain in steady
+state forever.
+```@repl sw07
+ss = simulate(m, exog, p; fctype=fcslope);
+```
+
+The simulated data, `ss`, should equal (up to the accuracy of the solution) the
+steady state data. Similar to [`zerodata`](@ref), we can use [`steadystatedata`](@ref)
+to create a data set containing the steady state solution.
+```@repl sw07
+ss ≈ steadystatedata(m, p)
+```
+
+#### Exogenous data
+
+All shocks are exogenous by default. All we have left to do is set the value of 
+the shock.
+
+Let's say that we want to shock `epinf` for the first 4 quarters by `0.1`.
+```@repl sw07
+exog[sim_rng[1:4], :epinf] = 0.1;
+exog[shocks(m)]
+```
+
+#### Running the simulation
+
+We call [`simulate`](@ref), providing the model, the exogenous data and the plan.
+We also specify the type of final condition we want to impose.
+```@repl sw07
+irf = simulate(m, exog, p, fctype=fcslope);
+```
+
+We can now take a look at how some of the observable variables in the model have
+responded to this shock. We can use `plot` from the `Plots` package to for that.
+We can specify the variables we want to plot using `vars=` and the names of the
+datasets being plotted (for the legend) in the `names=` option.
+```@repl sw07
+plot(ss, irf, vars=(:pinfobs, :dy, :labobs, :robs), names=("SS", "IRF"));
+```
+
+```@setup sw07
+savefig("irf.png")
+```
+
+![](irf.png)
+
+
+## Part 4: Stochastic shocks simulation
+
+TODO
+
+## Part 5: Back out historical shocks
+
+TODO
 
 ## Appendix
 
