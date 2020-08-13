@@ -12,6 +12,7 @@ Pkg.activate(joinpath(mypath, "..", ".."))
 using Plots
 using Random
 using Distributions
+using Test
 
 using ModelBaseEcon
 using StateSpaceEcon
@@ -224,8 +225,7 @@ end
 # final conditions - use fcslope, no need to set anything in exog
 ss = simulate(m, exog, p; fctype=fcslope)
 
-(ss ≈ steadystatedata(m, p)) |> display
-
+@test ss ≈ steadystatedata(m, p)
 
 # Impulse response when we shock epinf
 exog[last(init) + 1, :epinf] = 0.1
@@ -268,100 +268,47 @@ exog[shk_rng, shocks(m)]
 sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
 sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
 
+observed = (:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs);
 ss = steadystatedata(m, p);
 plot(ss, sim_a, sim_u,
-     vars=(:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs),
+     vars=observed,
      names=("SS", "Anticipated", "Unanticipated"),
      legend=[true (false for i = 1:6)...],
-     linewidth=1.5,
-     size=(900, 600)
-    )
+     linewidth=1.5,   # hide
+     size=(900, 600)  # hide
+    );
 savefig("stoch_shk.png")
 
 
-## ###############
+## ##########################################################################
+# Back out shocks from historical data
 
+hist_rng = first(sim_rng):last(shk_rng)
 
-# shock = 2004Q1 .+ (0:7)  # shock 8 quarters starting 2001
+endogenize!(p, shocks(m), hist_rng);
+exogenize!(p, observed, hist_rng);
+display(p)
 
-# p = Plan(m, 2000Q1:2049Q3)  # simulate 15 years beyond the last shock  
+exog = zerodata(m, p)
+for v in variables(m)
+    exog[init, v] = m.sstate[v].level
+end
 
-# init = p.range[1:m.maxlag]
-# term = p.range[end .+ (-m.maxlead + 1:0)]
+for v in observed
+    exog[hist_rng, v] = sim_a[v]
+end
+back_a = simulate(m, exog, p, fctype=fcslope, anticipate=true);
 
-# exog = zerodata(m, p)
+for v in observed
+    exog[hist_rng, v] = sim_u[v]
+end
+back_u = simulate(m, exog, p, fctype=fcslope, anticipate=false);
 
-# # set initial conditions to steady state
-# for v in variables(m)
-#     exog[init, v] = m.sstate.:($v).level
-# end
+@test sim_a[shocks(m)] ≈ back_a[shocks(m)]
+@test sim_u[shocks(m)] ≈ back_u[shocks(m)]
 
-# ss = steadystatedata(m, p)
+@test sim_a ≈ back_a
+@test sim_u ≈ back_u
 
-# # assign shocks according to their distributions
-# shk_dist = (ea = Normal(0.0, 0.4618), 
-#             eb = Normal(0.0, 1.8513), 
-#             eg = Normal(0.0, 0.6090), 
-#             eqs = Normal(0.0, 0.6017), 
-#             em = Normal(0.0, 0.2397), 
-#             epinf = Normal(0.0, 0.1455), 
-#             ew = Normal(0.0, 0.2089))
-
-# Random.seed!(1234);
-
-# for (s, d) in pairs(shk_dist)
-#     exog[shock, s] = rand(d, length(shock))
-# end
-
-# sim_a = simulate(m, exog, p; fctype=fcslope);
-# sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
-
-# # list of observable variables (it is sufficient to take the first hist )
-# vars_obs = [:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs]
-
-# plt_attrs() = (layout = @layout([a b; c d; e f; g _]),
-#     titlefont = font(11),
-#     size = (600, 800),
-#     linewidth = 1.5,
-#     legend = repeat([false], 7), 
-#     names = ("SS", "Ant", "Unant"))
-
-# plt = plot(ss, sim_a, sim_u, vars=shocks(m); plt_attrs()...)
-# savefig(plt, "shocks.png")
-# display(plt)
-
-# plt = plot(ss, sim_a, sim_u, vars=vars_obs; plt_attrs()...)
-# savefig(plt, "responses.png")
-# display(plt)
-
-# ## ##########################################################################
-# # Back out shocks from historical data
-
-# # start with zero exogenous data
-# exog = zerodata(m, p)
-
-# # set initial conditions to steady state
-# for v in variables(m)
-#     exog[init, v] = m.sstate.:($v).level
-# end
-
-# # swap the exogenous variables for the "historical period"
-# hist = 2000Q1:last(shock)
-# endogenize!(p, shocks(m), hist)
-# exogenize!(p, vars_obs, hist)
-
-# # autoexogenize!(p, m, hist)
-
-
-# # set the historical data for the variables over history
-
-# # 
-# exog[hist, vars_obs] = sim_a[hist, vars_obs]
-# back_a = simulate(m, exog, p; fctype=fcslope, anticipate=true)
-# back_a ≈ sim_a
-
-# exog[hist, vars_obs] = sim_u[hist, vars_obs]
-# back_u = simulate(m, exog, p; fctype=fcslope, anticipate=false)
-# back_u ≈ sim_u
 
 

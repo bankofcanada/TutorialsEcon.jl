@@ -10,6 +10,7 @@ using StateSpaceEcon
 using ModelBaseEcon
 using TimeSeriesEcon
 
+using Test
 using Plots
 using Random
 using Distributions
@@ -258,8 +259,8 @@ periods as the largest lead.
 p.range          # the full range of the plan
 init = first(p.range):first(sim_rng)-1   # the range for initial conditions
 term = last(sim_rng)+1:last(p.range)     # the range for final conditions
-length(init) == m.maxlag
-length(term) == m.maxlead
+@test length(init) == m.maxlag
+@test length(term) == m.maxlead
 ```
 
 ### Exogenous data
@@ -330,7 +331,7 @@ The simulated data, `ss`, should equal (up to the accuracy of the solution) the
 steady state data. Similar to [`zerodata`](@ref), we can use [`steadystatedata`](@ref)
 to create a data set containing the steady state solution.
 ```@repl sw07
-ss ≈ steadystatedata(m, p)
+@test ss ≈ steadystatedata(m, p)
 ```
 
 #### Exogenous data
@@ -419,9 +420,10 @@ sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
 we can take a look again at the responses of the observed variables to these shocks.
 
 ```@repl sw07
+observed = (:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs);
 ss = steadystatedata(m, p);
 plot(ss, sim_a, sim_u,
-     vars=(:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs),
+     vars=observed,
      names=("SS", "Anticipated", "Unanticipated"),
      legend=[true (false for i = 1:6)...],
      linewidth=1.5,   # hide
@@ -440,8 +442,67 @@ while the in the unanticipated case there's no movement until the shocks actuall
 
 ## Part 5: Back out historical shocks
 
-TODO
+Now let's pretend that the simulated values we just found are historical data
+and that we don't know the values of the shocks. We can treat the observed
+values of the variables as known by making these variables exogenous. At the
+same time we will make the shocks endogenous, so that their values will be
+solved for during the simulation.
 
+The "history" period is from the first period of the simulation until the last
+shock hit in the previous exercise.
+```@repl sw07
+hist_rng = first(sim_rng):last(shk_rng)
+```
+
+We use [`exogenize!`](@ref) and [`endogenize!`](@ref) to set up a plan in which
+observed variables are exogenous and shocks are endogenous during history.
+```@repl sw07
+endogenize!(p, shocks(m), hist_rng);
+exogenize!(p, observed, hist_rng);
+p
+```
+As we can see, the plan now reflects our intentions.
+
+Finally, we need to set up the exogenous data. This time we don't specify the
+shocks, rather we assign the known data for the observed variables during the
+hisotrical period. We start with initial conditions.
+```@repl sw07
+exog = zerodata(m, p);
+for v in variables(m)
+    exog[init, v] = m.sstate[v].level
+end
+```
+
+We take the observed data from the simulations above. We'll do the anticipated
+version first.
+```@repl sw07
+for v in observed
+    exog[hist_rng, v] = sim_a[v]
+end
+back_a = simulate(m, exog, p, fctype=fcslope, anticipate=true);
+```
+
+Now we'll repeat with the unanticipated case.
+```@repl sw07
+for v in observed
+    exog[hist_rng, v] = sim_u[v]
+end
+back_u = simulate(m, exog, p, fctype=fcslope, anticipate=false);
+```
+
+If we did everything correctly, the shocks we recovered would exactly match the
+shocks we used when we simulated the "historical data".
+```@repl sw07
+@test sim_a[shocks(m)] ≈ back_a[shocks(m)]
+@test sim_u[shocks(m)] ≈ back_u[shocks(m)]
+```
+
+Moreover, we should have the unobserved variables match as well. 
+In fact, all the data should match over the entire simulation range.
+```@repl sw07
+@test sim_a ≈ back_a
+@test sim_u ≈ back_u
+```
 ## Appendix
 
 ### [Replication Data](@id replication_data)
