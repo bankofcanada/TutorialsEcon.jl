@@ -33,8 +33,9 @@ unique!(push!(LOAD_PATH, realpath("."))) # hide
     end
     layout --> length(vars)
     title --> reshape(map(string, [vars...]), 1, :)
+    titlefont --> font(10, :bold)
     label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
-    linewidth --> 2
+    linewidth --> 1.5
     left_margin --> 4 * Plots.mm
     for s in sd
         for v in vars
@@ -356,7 +357,12 @@ responded to this shock. We can use `plot` from the `Plots` package to for that.
 We can specify the variables we want to plot using `vars=` and the names of the
 datasets being plotted (for the legend) in the `names=` option.
 ```@repl sw07
-plot(ss, irf, vars=(:pinfobs, :dy, :labobs, :robs), names=("SS", "IRF"));
+plot(ss, irf,
+     vars=(:pinfobs, :dy, :labobs, :robs),
+     names=("SS", "IRF"),
+     legend=[true false false false],
+     size=(600, 400)
+    );
 ```
 
 ```@setup sw07
@@ -368,7 +374,69 @@ savefig("irf.png")
 
 ## Part 4: Stochastic shocks simulation
 
-TODO
+Now let's do a stochastic shock simulation. We'll have random shocks over 2 year
+and then simulate without any new shocks for several years after that to allow
+time for the economy to relax back to its steady state.
+
+```@repl sw07
+sim_rng = 2000Q1:2049Q4      # simulate 50 years starting 2000
+shk_rng = 2004Q1 .+ (0:7)    # shock 8 quarters starting in 2004
+p = Plan(m, sim_rng)
+init = first(p.range):first(sim_rng) - 1
+term = last(sim_rng) + 1:last(p.range)
+exog = zerodata(m, p);
+for v in variables(m)
+    exog[init, v] = m.sstate[v].level
+end
+```
+
+The distributions of the shocks are assumed normal with mean 0 and standard
+deviations that were estimated. We can use the `Distributions` and `Random`
+packages to draw the necessary random values.
+
+```@repl sw07
+shk_dist = (ea = Normal(0.0, 0.4618),
+            eb = Normal(0.0, 1.8513),
+            eg = Normal(0.0, 0.6090),
+            eqs = Normal(0.0, 0.6017),
+            em = Normal(0.0, 0.2397),
+            epinf = Normal(0.0, 0.1455),
+            ew = Normal(0.0, 0.2089));
+Random.seed!(1234); # hide
+for (shk, dist) in pairs(shk_dist)
+    exog[shk_rng, shk] = rand(dist, length(shk_rng))
+end
+exog[shk_rng, shocks(m)]
+```
+
+Now we're ready to simulate. We can set the shocks as being anticipated or unanticipated. This is done by setting the `anticipate=` option in [`simulate`](@ref).
+
+```@repl sw07
+sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
+sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
+```
+
+we can take a look again at the responses of the observed variables to these shocks.
+
+```@repl sw07
+ss = steadystatedata(m, p);
+plot(ss, sim_a, sim_u,
+     vars=(:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs),
+     names=("SS", "Anticipated", "Unanticipated"),
+     legend=[true (false for i = 1:6)...],
+     linewidth=1.5,   # hide
+     size=(900, 600)  # hide
+    );
+```
+
+```@setup sw07
+savefig("stoch_shk.png")
+```
+
+![](stoch_shk.png)
+
+We see that when the shocks are anticipated the variables start to react to them right away
+while the in the unanticipated case there's no movement until the shocks actually hit.
 
 ## Part 5: Back out historical shocks
 

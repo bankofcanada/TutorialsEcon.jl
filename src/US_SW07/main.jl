@@ -36,8 +36,9 @@ using RecipesBase
     end
     layout --> length(vars)
     title --> reshape(map(string, [vars...]), 1, :)
+    titlefont --> font(10, :bold)
     label --> repeat(reshape([names...], 1, :), inner=(1, length(vars)))
-    linewidth --> 2
+    linewidth --> 1.5
     left_margin --> 4 * Plots.mm
     for s in sd
         for v in vars
@@ -230,95 +231,137 @@ ss = simulate(m, exog, p; fctype=fcslope)
 exog[last(init) + 1, :epinf] = 0.1
 irf = simulate(m, exog, p; fctype=fcslope)
 
-vars = ("pinf", "y", "r", "lab")
-
-# plt = plot(ss, irf, vars=vars, names=("SS", "IRF"), titlefont=font(11))
-# savefig(plt, "irf.png")
-# display(plt)
+plot(ss, irf,
+     vars=(:pinfobs, :dy, :labobs, :robs),
+     names=("SS", "IRF"),
+     legend=[true false false false],
+     size=(600, 400)
+    );
+savefig("irf.png")
 
 ## ##########################################################################
 # Stochastic shock 
 
-shock = 2004Q1 .+ (0:7)  # shock 8 quarters starting 2001
-
-p = Plan(m, 2000Q1:2049Q3)  # simulate 15 years beyond the last shock  
-
-init = p.range[1:m.maxlag]
-term = p.range[end .+ (-m.maxlead + 1:0)]
-
-exog = zerodata(m, p)
-
-# set initial conditions to steady state
+sim_rng = 2000Q1:2049Q4      # simulate 50 years starting 2000
+shk_rng = 2004Q1 .+ (0:7)    # shock 8 quarters starting in 2004
+p = Plan(m, sim_rng)
+init = first(p.range):first(sim_rng) - 1
+term = last(sim_rng) + 1:last(p.range)
+exog = zerodata(m, p);
 for v in variables(m)
-    exog[init, v] = m.sstate.:($v).level
+    exog[init, v] = m.sstate[v].level
 end
 
-ss = steadystatedata(m, p)
-
-# assign shocks according to their distributions
-shk_dist = (ea = Normal(0.0, 0.4618), 
-            eb = Normal(0.0, 1.8513), 
-            eg = Normal(0.0, 0.6090), 
-            eqs = Normal(0.0, 0.6017), 
-            em = Normal(0.0, 0.2397), 
-            epinf = Normal(0.0, 0.1455), 
-            ew = Normal(0.0, 0.2089))
-
-Random.seed!(1234);
-
-for (s, d) in pairs(shk_dist)
-    exog[shock, s] = rand(d, length(shock))
+shk_dist = (ea = Normal(0.0, 0.4618),
+            eb = Normal(0.0, 1.8513),
+            eg = Normal(0.0, 0.6090),
+            eqs = Normal(0.0, 0.6017),
+            em = Normal(0.0, 0.2397),
+            epinf = Normal(0.0, 0.1455),
+            ew = Normal(0.0, 0.2089));
+Random.seed!(1234); # hide
+for (shk, dist) in pairs(shk_dist)
+    exog[shk_rng, shk] = rand(dist, length(shk_rng))
 end
+exog[shk_rng, shocks(m)]
 
-sim_a = simulate(m, exog, p; fctype=fcslope);
+sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
 sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
 
-# list of observable variables (it is sufficient to take the first hist )
-vars_obs = [:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs]
-
-plt_attrs() = (layout = @layout([a b; c d; e f; g _]),
-    titlefont = font(11),
-    size = (600, 800),
-    linewidth = 1.5,
-    legend = false, 
-    names = ("SS", "Ant", "Unant"))
-
-plt = plot(ss, sim_a, sim_u, vars=shocks(m); plt_attrs()...)
-savefig(plt, "shocks.png")
-display(plt)
-
-plt = plot(ss, sim_a, sim_u, vars=vars_obs; plt_attrs()...)
-savefig(plt, "responses.png")
-display(plt)
-
-## ##########################################################################
-# Back out shocks from historical data
-
-# start with zero exogenous data
-exog = zerodata(m, p)
-
-# set initial conditions to steady state
-for v in variables(m)
-    exog[init, v] = m.sstate.:($v).level
-end
-
-# swap the exogenous variables for the "historical period"
-hist = 2000Q1:last(shock)
-endogenize!(p, shocks(m), hist)
-exogenize!(p, vars_obs, hist)
-
-# autoexogenize!(p, m, hist)
+ss = steadystatedata(m, p);
+plot(ss, sim_a, sim_u,
+     vars=(:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs),
+     names=("SS", "Anticipated", "Unanticipated"),
+     legend=[true (false for i = 1:6)...],
+     linewidth=1.5,
+     size=(900, 600)
+    )
+savefig("stoch_shk.png")
 
 
-# set the historical data for the variables over history
+## ###############
 
-# 
-exog[hist, vars_obs] = sim_a[hist, vars_obs]
-back_a = simulate(m, exog, p; fctype=fcslope, anticipate = true)
-back_a ≈ sim_a
 
-exog[hist, vars_obs] = sim_u[hist, vars_obs]
-back_u = simulate(m, exog, p; fctype=fcslope, anticipate = false)
-back_u ≈ sim_u
+# shock = 2004Q1 .+ (0:7)  # shock 8 quarters starting 2001
+
+# p = Plan(m, 2000Q1:2049Q3)  # simulate 15 years beyond the last shock  
+
+# init = p.range[1:m.maxlag]
+# term = p.range[end .+ (-m.maxlead + 1:0)]
+
+# exog = zerodata(m, p)
+
+# # set initial conditions to steady state
+# for v in variables(m)
+#     exog[init, v] = m.sstate.:($v).level
+# end
+
+# ss = steadystatedata(m, p)
+
+# # assign shocks according to their distributions
+# shk_dist = (ea = Normal(0.0, 0.4618), 
+#             eb = Normal(0.0, 1.8513), 
+#             eg = Normal(0.0, 0.6090), 
+#             eqs = Normal(0.0, 0.6017), 
+#             em = Normal(0.0, 0.2397), 
+#             epinf = Normal(0.0, 0.1455), 
+#             ew = Normal(0.0, 0.2089))
+
+# Random.seed!(1234);
+
+# for (s, d) in pairs(shk_dist)
+#     exog[shock, s] = rand(d, length(shock))
+# end
+
+# sim_a = simulate(m, exog, p; fctype=fcslope);
+# sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
+
+# # list of observable variables (it is sufficient to take the first hist )
+# vars_obs = [:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs]
+
+# plt_attrs() = (layout = @layout([a b; c d; e f; g _]),
+#     titlefont = font(11),
+#     size = (600, 800),
+#     linewidth = 1.5,
+#     legend = repeat([false], 7), 
+#     names = ("SS", "Ant", "Unant"))
+
+# plt = plot(ss, sim_a, sim_u, vars=shocks(m); plt_attrs()...)
+# savefig(plt, "shocks.png")
+# display(plt)
+
+# plt = plot(ss, sim_a, sim_u, vars=vars_obs; plt_attrs()...)
+# savefig(plt, "responses.png")
+# display(plt)
+
+# ## ##########################################################################
+# # Back out shocks from historical data
+
+# # start with zero exogenous data
+# exog = zerodata(m, p)
+
+# # set initial conditions to steady state
+# for v in variables(m)
+#     exog[init, v] = m.sstate.:($v).level
+# end
+
+# # swap the exogenous variables for the "historical period"
+# hist = 2000Q1:last(shock)
+# endogenize!(p, shocks(m), hist)
+# exogenize!(p, vars_obs, hist)
+
+# # autoexogenize!(p, m, hist)
+
+
+# # set the historical data for the variables over history
+
+# # 
+# exog[hist, vars_obs] = sim_a[hist, vars_obs]
+# back_a = simulate(m, exog, p; fctype=fcslope, anticipate=true)
+# back_a ≈ sim_a
+
+# exog[hist, vars_obs] = sim_u[hist, vars_obs]
+# back_u = simulate(m, exog, p; fctype=fcslope, anticipate=false)
+# back_u ≈ sim_u
 
 
