@@ -9,6 +9,7 @@ module SW07
 using ModelBaseEcon
 
 model = Model()
+model.flags.ssZeroSlope = true
 
 # Define global constants
 global const ctrend = 0.4312
