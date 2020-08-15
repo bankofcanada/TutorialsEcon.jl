@@ -15,6 +15,9 @@ using Plots
 using Random
 using Distributions
 
+# Fix the random seed for reproducibility.
+Random.seed!(1234);
+
 # We need the model file SW07.jl to be on the search path for modules.
 unique!(push!(LOAD_PATH, realpath("."))) # hide
 
@@ -102,7 +105,8 @@ m.options
 The steady state is a special solution of the dynamic system, one that remains
 constant over time. It is important on its own, but also it can be useful in
 several ways. One example is that linearizing the model requires a particular
-solution about which to linearize and the steady state is the one typically used.
+solution about which to linearize and the steady state is the one typically
+used.
 
 In addition to the steady state we also consider another kind of special
 solution, which grows linearly in time. If we know that the steady state
@@ -168,9 +172,9 @@ clear_sstate!(m)
 sssolve!(m);
 ```
 
-If in doubt, we can use [`check_sstate`](@ref) to make sure the steady state solution
-stored in the model object indeed satisfies the steady state system of equations.
-This function returns the number of equations that are not satisfied.
+If in doubt, we can use [`check_sstate`](@ref) to make sure the steady state
+solution stored in the model object indeed satisfies the steady state system of
+equations. This function returns the number of equations that are not satisfied.
 A value of 0 is what we want to see. In verbose mode, the it also lists the
 problematic equations and their residuals.
 
@@ -181,24 +185,28 @@ check_sstate(m)
 ### Examine the steady state
 
 We can access the steady state solution via `m.sstate` using the dot notation.
+
 ```@repl sw07
 m.sstate.dc
 ```
 
 We can also assign new values, but we should be careful to make sure it remains
 a valid steady state solution.
+
 ```@repl sw07
-m.sstate.dc.slope = 0.001
-check_sstate(m)
+m.sstate.dc.level = 0.43121
+@test check_sstate(m) > 0
 ```
 
 Okay, let's undo that.
+
 ```@repl sw07
-m.sstate.dc.slope = 0
-check_sstate(m)
+m.sstate.dc.level = 0.4312
+@test check_sstate(m) == 0
 ```
 
 We can examine the entire steady state solution with [`printsstate`](@ref).
+
 ```@repl sw07
 printsstate(m)
 ```
@@ -212,6 +220,7 @@ simulation and for each period what data is available, i.e. what values are
 known or exogenous. This is done with an object of type [`Plan`](@ref).
 
 To create a plan all we need is the model and a period for the simulation.
+
 ```@repl sw07
 sim_rng = 2000Q1:2039Q4
 p = Plan(m, sim_rng)
@@ -226,6 +235,7 @@ simulation range. This is necessary, because we need to set initial and final
 conditions. The number of periods for initial conditions is equal to the largest
 lag in the model. Similarly, terminal conditions have to be imposed over as many
 periods as the largest lead.
+
 ```@repl sw07
 p.range          # the full range of the plan
 init = first(p.range):first(sim_rng)-1   # the range for initial conditions
@@ -243,8 +253,9 @@ shocks, exogenous values (according to the plan) and possibly final conditions.
 #### Initial conditions
 
 In this example, we want to simulate an impulse response, so it makes sense to
-start from the steady state and that's what we set as the initial condition.
-The initial conditions for the shocks we leave at 0.
+start from the steady state and that's what we set as the initial condition. The
+initial conditions for the shocks we leave at 0.
+
 ```@repl sw07
 exog = zerodata(m, p);
 for var in variables(m)
@@ -263,8 +274,7 @@ exog
         exog[init, var] = ss.level
         if ss.slope != 0
             # recursively update by adding the slope
-            tmp = exog[var]
-            @rec tmp[t] = tmp[t-1] + ss.slope init[2:end]
+            @rec init[2:end] exog[t, var] = exog[t - 1, var] + ss.slope
         end
     end
     ```
@@ -294,23 +304,27 @@ exogenous data array because those values would be ignored.
 If we were to run a simulation where the economy started in the steady state and
 there were no shocks at all, we'd expect that the economy would remain in steady
 state forever.
+
 ```@repl sw07
 ss = simulate(m, exog, p; fctype=fcslope);
 ```
 
 The simulated data, `ss`, should equal (up to the accuracy of the solution) the
-steady state data. Similar to [`zerodata`](@ref), we can use [`steadystatedata`](@ref)
-to create a data set containing the steady state solution.
+steady state data. Similar to [`zerodata`](@ref), we can use
+[`steadystatedata`](@ref) to create a data set containing the steady state
+solution.
+
 ```@repl sw07
 @test ss ≈ steadystatedata(m, p)
 ```
 
 #### Exogenous data
 
-All shocks are exogenous by default. All we have left to do is set the value of 
+All shocks are exogenous by default. All we have left to do is set the value of
 the shock.
 
 Let's say that we want to shock `epinf` for the first 4 quarters by `0.1`.
+
 ```@repl sw07
 exog[sim_rng[1:4], :epinf] = 0.1;
 exog[shocks(m)]
@@ -318,8 +332,9 @@ exog[shocks(m)]
 
 #### Running the simulation
 
-We call [`simulate`](@ref), providing the model, the exogenous data and the plan.
-We also specify the type of final condition we want to impose.
+We call [`simulate`](@ref), providing the model, the exogenous data and the
+plan. We also specify the type of final condition we want to impose.
+
 ```@repl sw07
 irf = simulate(m, exog, p, fctype=fcslope);
 ```
@@ -328,6 +343,7 @@ We can now take a look at how some of the observable variables in the model have
 responded to this shock. We can use `plot` from the `Plots` package to for that.
 We can specify the variables we want to plot using `vars=` and the names of the
 datasets being plotted (for the legend) in the `names=` option.
+
 ```@repl sw07
 plot(ss, irf,
      vars=(:pinfobs, :dy, :labobs, :robs),
@@ -341,8 +357,7 @@ plot(ss, irf,
 savefig("irf.png")
 ```
 
-![](irf.png)
-
+![Impulse Response Graph](irf.png)
 
 ## Part 4: Stochastic shocks simulation
 
@@ -374,21 +389,23 @@ shk_dist = (ea = Normal(0.0, 0.4618),
             em = Normal(0.0, 0.2397),
             epinf = Normal(0.0, 0.1455),
             ew = Normal(0.0, 0.2089));
-Random.seed!(1234); # hide
 for (shk, dist) in pairs(shk_dist)
     exog[shk_rng, shk] = rand(dist, length(shk_rng))
 end
 exog[shk_rng, shocks(m)]
 ```
 
-Now we're ready to simulate. We can set the shocks as being anticipated or unanticipated. This is done by setting the `anticipate=` option in [`simulate`](@ref).
+Now we're ready to simulate. We can set the shocks as being anticipated or
+unanticipated. This is done by setting the `anticipate=` option in
+[`simulate`](@ref).
 
 ```@repl sw07
 sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
 sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
 ```
 
-we can take a look again at the responses of the observed variables to these shocks.
+we can take a look again at the responses of the observed variables to these
+shocks.
 
 ```@repl sw07
 observed = (:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs);
@@ -406,10 +423,11 @@ plot(ss, sim_a, sim_u,
 savefig("stoch_shk.png")
 ```
 
-![](stoch_shk.png)
+![Stochastic Shock Response Graph](stoch_shk.png)
 
-We see that when the shocks are anticipated the variables start to react to them right away
-while the in the unanticipated case there's no movement until the shocks actually hit.
+We see that when the shocks are anticipated the variables start to react to them
+right away while the in the unanticipated case there's no movement until the
+shocks actually hit.
 
 ## Part 5: Back out historical shocks
 
@@ -421,22 +439,26 @@ solved for during the simulation.
 
 The "history" period is from the first period of the simulation until the last
 shock hit in the previous exercise.
+
 ```@repl sw07
 hist_rng = first(sim_rng):last(shk_rng)
 ```
 
 We use [`exogenize!`](@ref) and [`endogenize!`](@ref) to set up a plan in which
 observed variables are exogenous and shocks are endogenous during history.
+
 ```@repl sw07
 endogenize!(p, shocks(m), hist_rng);
 exogenize!(p, observed, hist_rng);
 p
 ```
+
 As we can see, the plan now reflects our intentions.
 
 Finally, we need to set up the exogenous data. This time we don't specify the
 shocks, rather we assign the known data for the observed variables during the
 hisotrical period. We start with initial conditions.
+
 ```@repl sw07
 exog = zerodata(m, p);
 for v in variables(m)
@@ -446,6 +468,7 @@ end
 
 We take the observed data from the simulations above. We'll do the anticipated
 version first.
+
 ```@repl sw07
 for v in observed
     exog[hist_rng, v] = sim_a[v]
@@ -454,6 +477,7 @@ back_a = simulate(m, exog, p, fctype=fcslope, anticipate=true);
 ```
 
 Now we'll repeat with the unanticipated case.
+
 ```@repl sw07
 for v in observed
     exog[hist_rng, v] = sim_u[v]
@@ -463,28 +487,28 @@ back_u = simulate(m, exog, p, fctype=fcslope, anticipate=false);
 
 If we did everything correctly, the shocks we recovered would exactly match the
 shocks we used when we simulated the "historical data".
+
 ```@repl sw07
 @test sim_a[shocks(m)] ≈ back_a[shocks(m)]
 @test sim_u[shocks(m)] ≈ back_u[shocks(m)]
 ```
 
-Moreover, we should have the unobserved variables match as well. 
-In fact, all the data should match over the entire simulation range.
+Moreover, we should have the unobserved variables match as well. In fact, all
+the data should match over the entire simulation range.
+
 ```@repl sw07
 @test sim_a ≈ back_a
 @test sim_u ≈ back_u
 ```
+
 ## Appendix
 
 ### [Replication Data](@id replication_data)
 
-The replication data can be downloaded from http://doi.org/10.3886/E116269V1<br>
-You may need to create an account, if you don't already have one.
-Download the zip file and extract its contents in the data/116269-V1/ directory.
+The replication data can be downloaded from <http://doi.org/10.3886/E116269V1><br>
+You may need to create an account, if you don't already have one. Download the
+zip file and extract its contents in the data/116269-V1/ directory.
 
 ### Reference
 
 [Smets, F., Wouters, R., 2007. Shocks and frictions in US business cycles: A bayesian DSGE approach. The American Economic Review 97(3), 586–606.](https://www.aeaweb.org/articles?id=10.1257/aer.97.3.586)
-
-
-

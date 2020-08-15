@@ -1,4 +1,4 @@
-# Tutorials for StateSpaceEcon
+# README
 
 This project contains a list of tutorials demonstrating the use of StateSpaceEcon group of Julia packages.
 Each tutorial is in its own subdirectory. They are meant to run in a Julia session running in the root
