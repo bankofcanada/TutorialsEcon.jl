@@ -146,9 +146,9 @@ m.sstate
 ```
 
 !!! note "Important note"
-    Steady state constraints that are always valid can be pre-defined in the model file.
-    In that case, all calls to the [`@steadystate`](@ref) macro must be made after calling
-   [`@initialize`](@ref).
+    Steady state constraints that are always valid can be pre-defined in the
+    model file. In that case, all calls to the [`@steadystate`](@ref) macro must
+    be made after calling [`@initialize`](@ref).
 
 ### Solve for the steady state
 
@@ -404,7 +404,7 @@ sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
 sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
 ```
 
-we can take a look again at the responses of the observed variables to these
+We can take a look again at the responses of the observed variables to these
 shocks.
 
 ```@repl sw07
