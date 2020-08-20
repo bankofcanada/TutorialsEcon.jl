@@ -175,7 +175,7 @@ sssolve!(m);
 If in doubt, we can use [`check_sstate`](@ref) to make sure the steady state
 solution stored in the model object indeed satisfies the steady state system of
 equations. This function returns the number of equations that are not satisfied.
-A value of 0 is what we want to see. In verbose mode, the it also lists the
+A value of 0 is what we want to see. In verbose mode, it also lists the
 problematic equations and their residuals.
 
 ```@repl sw07
@@ -290,7 +290,7 @@ conditions.
 Alternatively, we can specify that we want to use the steady state in the call
 to simulate by passing `fctype=fclevel`. Yet another possibility is to set the
 final condition so that the solution slope matches the slope of the steady state
-by setting `fctype=fcslope`. In both cases, we don't need to set anything the
+by setting `fctype=fcslope`. In both cases, we don't need to set anything in the
 exogenous data array because those values would be ignored.
 
 !!! tip "Pro tip"
@@ -426,7 +426,7 @@ savefig("stoch_shk.png")
 ![Stochastic Shock Response Graph](stoch_shk.png)
 
 We see that when the shocks are anticipated the variables start to react to them
-right away while the in the unanticipated case there's no movement until the
+right away while in the unanticipated case there's no movement until the
 shocks actually hit.
 
 ## Part 5: Back out historical shocks
@@ -457,7 +457,7 @@ As we can see, the plan now reflects our intentions.
 
 Finally, we need to set up the exogenous data. This time we don't specify the
 shocks, rather we assign the known data for the observed variables during the
-hisotrical period. We start with initial conditions.
+historical period. We start with initial conditions.
 
 ```@repl sw07
 exog = zerodata(m, p);
