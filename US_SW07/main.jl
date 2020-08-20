@@ -303,9 +303,10 @@ plot(ss, irf,
      size=(600, 400)
     );
 
-rm("irf.png", force=true)
-savefig("irf.png")
-@test isfile("irf.png")
+png_fname = joinpath(mypath, "irf.png")
+rm(png_fname, force=true)
+savefig(png_fname)
+@test isfile(png_fname)
 
 ## ##########################################################################
 #### Part 4: Stochastic shocks simulation
@@ -361,9 +362,10 @@ plot(ss, sim_a, sim_u,
      size=(900, 600)
     );
 
-rm("stoch_shk.png", force=true)
-savefig("stoch_shk.png")
-@test isfile("stoch_shk.png")
+png_fname = joinpath(mypath, "stoch_shk.png")
+rm(png_fname, force=true)
+savefig(png_fname)
+@test isfile(png_fname)
 
 # We see that when the shocks are anticipated the variables start to react to them
 # right away while the in the unanticipated case there's no movement until the
