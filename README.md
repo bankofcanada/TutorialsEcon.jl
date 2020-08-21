@@ -6,12 +6,20 @@ directory of the project, which is what happens in VSCode, not in the subdirecto
 
 ## Installation
 
-The tutorials are designed to run in the Julia environment in the root of the project. This environment
-must be instantiated before it can be used. If unsure, open [installation.jl](installation.jl) and
-run it in VSCode (Ctrl+F5).
+The tutorials are designed to run in the Julia environment in the root of the project.
+Before the first use, make sure to instantiate the environment.
+```julia
+] activate .
+] instantiate
+```
+
+After that, make sure the environment is active when you run the tutorial codes.
 
 ## List of tutorials
 
-* [US_SW07](US_SW07/README.md)
+Each tutorial is in its own subdirectory and contains a `main.jl` and `main.md`
+in addition to other files. The two `main` files contain the same code and
+explanations. If running the tutorial code yourself, you should use the .jl
+file.
 
-More to come.
+* [Smets and Wouters 2007](US_SW07/main.md)
