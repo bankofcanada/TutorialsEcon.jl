@@ -1,5 +1,10 @@
 # Smets and Wouters 2007
 
+You can follow the tutorial by reading this page and copying and pasting code
+into your Julia REPL session. In this case, you'd need the model file, [`SW07.jl`](SW07.jl).
+
+All the code contained here is also available in this file: [`main.jl`](main.jl).
+
 ```@contents
 Pages = ["main.md"]
 Depth = 3
@@ -28,7 +33,7 @@ unique!(push!(LOAD_PATH, realpath("."))) # hide
 ### Load the model
 
 The model is described in its own dedicated module, which in turn is contained
-in its own file, `SW07.jl`. We can load the module with `using SW07`, then the
+in its own file, [`SW07.jl`](SW07.jl). We can load the module with `using SW07`, then the
 model itself is a global variable called `model` within that module.
 
 ```@repl sw07
@@ -505,7 +510,8 @@ the data should match over the entire simulation range.
 
 ### [Replication Data](@id replication_data)
 
-The replication data can be downloaded from <http://doi.org/10.3886/E116269V1><br>
+The replication data can be downloaded from <http://doi.org/10.3886/E116269V1>
+
 You may need to create an account, if you don't already have one. Download the
 zip file and extract its contents in the data/116269-V1/ directory.
 
