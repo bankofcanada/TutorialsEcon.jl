@@ -1,4 +1,4 @@
-# TimeSeriesEcon Quickstart
+# TimeSeriesEcon
 
 All the code contained here is also available in this file: [`main.jl`](main.jl).
 
@@ -52,8 +52,6 @@ As you can see, the frequency of `MIT` carries over to a `TSeries` instance.
 Every instance of `MIT` and `TSeries` is equipped with `Frequency` information, which is stored as a parameter.
 
 ```@repl tse
-subtypes(Frequency)
-
 frequencyof(2020M8)
 frequencyof(series_monthly)
 ```
