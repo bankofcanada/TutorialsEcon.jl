@@ -12,30 +12,26 @@ using TimeSeriesEcon
 using Plots
 ```
 
-## Part 1: Moment In Time (MIT) and TSeries
+## Part 1: MIT and TSeries
 
 ### Initialize MITs and TSeries
 
-`MIT` is a primitive type based on 64-bit signed integers that 
+`MIT` (Moment-in-Time) is a primitive type based on 64-bit signed integers that 
 represents discrete dates. There are two ways to initialize 
-`MIT`s: 
+MITs: 
  - (1) directly `2020M8`, or 
  - (2) using the functional form `mm(2020, 8)`.
 
-Internally, `MIT`s contain `Frequency` information - more on this in the next section. 
+Internally, `MIT` contains `Frequency` information - more on this in the next section. 
 
 ```@repl tse
-# `Unit` Frequency
-mit_integer   = 2000U  # ii(2000)
+mit_integer = 2000U  # ii(2000)
 
-# `Monthly` Frequency
-mit_monthly   = 2020M8 # mm(2020, 8)
+mit_monthly = 2020M8 # mm(2020, 8)
 
-# `Quarterly` Frequency
 mit_quarterly = 2020Q3 # qq(2020, 3)
 
-# `Yearly` Frequency
-mit_yearly    = 2020Y  # yy(2020)
+mit_yearly = 2020Y  # yy(2020)
 ```
 
 `TSeries` is subtype of AbstractVector and represents 1-dimensional time-series. A key feature of `TSeries` is the ability to use `MIT`s as indices to get and set values. 
@@ -82,8 +78,8 @@ Just as integers are used to index into Julia vectors, `MIT`s are used to index 
 ```@repl tse
 series_monthly
 
-series_monthly[2020M1] # 5
-series_monthly[2020M1:2020M3] # TSeries(2020M8, [5.0, 4.0, 2.0])
+series_monthly[2020M1]
+series_monthly[2020M1:2020M3]
 ```
 
 ### Assign
@@ -119,7 +115,7 @@ plot(TSeries(2000Q1, rand(1:3, 10)),
     );
 ```
 
-```@setup sw07
+```@setup tse
 savefig("tseries.png")
 ```
 

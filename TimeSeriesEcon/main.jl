@@ -9,9 +9,9 @@ using Plots
 
 ### Initialize MITs and TSeries
 
-`MIT` is a primitive type based on 64-bit signed integers that 
-represents discrete dates. There are two ways to initialize 
-`MIT`s: (1) directly `2020M8`, or (2) using the functional form `mm(2020, 8)`.
+# `MIT` is a primitive type based on 64-bit signed integers that 
+# represents discrete dates. There are two ways to initialize 
+# `MIT`s: (1) directly `2020M8`, or (2) using the functional form `mm(2020, 8)`.
 
 # `Unit` Frequency
 mit_integer   = 2000U  # ii(2000)
