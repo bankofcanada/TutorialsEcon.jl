@@ -368,7 +368,7 @@ plot(ss, irf,
 savefig("irf.png")
 ```
 
-![Impulse Response Graph](irf.png)
+[![Impulse Response Graph](irf.png)](irf.png)
 
 ## Part 4: Stochastic shocks simulation
 
@@ -434,7 +434,7 @@ plot(ss, sim_a, sim_u,
 savefig("stoch_shk.png")
 ```
 
-![Stochastic Shock Response Graph](stoch_shk.png)
+[![Stochastic Shock Response Graph](stoch_shk.png)](stoch_shk.png)
 
 We see that when the shocks are anticipated, the variables start to react to
 them right away; in the unanticipated case, there is no movement until the
