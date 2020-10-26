@@ -20,5 +20,23 @@ Random.seed!(1234);
 
 nothing
 ## ##########################################################################
+# update models files if necessary
 
-using HTTP
+models_path = joinpath(mypath, "models")
+
+if !isfile(joinpath(models_path, "FRBUS_VAR.jl")) || (
+        isfile(joinpath(models_path, "frbus_package.zip")) && mtime(joinpath(models_path, "FRBUS_VAR.jl")) 
+            < mtime(joinpath(models_path, "frbus_package.zip")))
+    @info "Updating model files"
+    include("update_models.jl")
+end
+
+## ##########################################################################
+# load model
+
+unique!(push!(LOAD_PATH, joinpath(mypath, "models")))
+
+using FRBUS_VAR
+
+m = FRBUS_VAR.model
+
