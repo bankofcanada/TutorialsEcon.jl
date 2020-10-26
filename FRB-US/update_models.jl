@@ -201,7 +201,7 @@ open(joinpath(mypath, "models", "FRBUS_VAR.jl"), "w") do fd
     println(f, "model.substitutions = true")
     println(f)
     println(f, "export indicator")
-    println(f, "\"Indicator function\" indicator(x) = (x>zero(x))")
+    println(f, "\"Indicator function\" @inline indicator(x) = convert(typeof(x), x>zero(x))")
     println(f)
 
     # parameters

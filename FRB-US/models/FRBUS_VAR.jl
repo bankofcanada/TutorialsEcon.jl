@@ -7,7 +7,7 @@ model = Model()
 model.substitutions = true
 
 export indicator
-"Indicator function" indicator(x) = (x>zero(x))
+"Indicator function" @inline indicator(x) = convert(typeof(x), x>zero(x))
 
 @parameters model begin
     y_dmptlur = [25.0]
