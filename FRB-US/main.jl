@@ -90,6 +90,9 @@ p_0 = autoexogenize!(copy(p), m, sim)
 ed_0 = copy(ed)
 sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12)
 
+# once compiled, the simulation is much faster
+sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12)
+
 ## ##########################################################################
 # recover baseline simulation with the shocks
 
@@ -115,7 +118,7 @@ ed_r.rffmin .= -9999
 ed_r.drstar .= 0.0
 set_fp!(ed_r, :dfpsrp)
 
-sol_r = simulate(m, ed_r, p_r, verbose=true, tol=1e-9)
+sol_r = @time simulate(m, ed_r, p_r, verbose=true, tol=1e-9)
 
 @test sol_r ≈ sol_0
 
