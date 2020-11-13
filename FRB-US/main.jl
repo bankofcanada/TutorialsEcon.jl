@@ -3,6 +3,7 @@
 # Do not run next line of code with Ctrl-Enter!
 # Run next line of code with Alt-Enter (run line), Shift-Enter (run cell), or Ctrl-F5 (run file)
 mypath = dirname(@__FILE__)
+
 ## ##########################################################################
 # Initialization
 
@@ -20,7 +21,7 @@ Random.seed!(1234);
 
 nothing
 ## ##########################################################################
-# update models files if necessary
+# Update models files if necessary
 
 models_path = joinpath(mypath, "models")
 
