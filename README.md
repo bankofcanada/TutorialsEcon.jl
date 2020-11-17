@@ -23,4 +23,5 @@ explanations. If running the tutorial code yourself, you should use the .jl
 file.
 
 * [Smets and Wouters 2007](US_SW07/main.md)
+* [FRB-US with VAR-based Expectations](FRB-US/main.md)
 * [TimeSeriesEcon](TimeSeriesEcon/main.md)
