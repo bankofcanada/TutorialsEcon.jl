@@ -30,6 +30,8 @@ if !isfile(joinpath(models_path, "FRBUS_VAR.jl")) || (
             < mtime(joinpath(models_path, "frbus_package.zip")))
     @info "Updating model files"
     include("update_models.jl")
+else
+    include("update_models.jl")
 end
 
 ## ##########################################################################

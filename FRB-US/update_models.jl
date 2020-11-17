@@ -27,10 +27,10 @@ end
 ## ##########################################################################
 # unzip model.xml
 
-zip = ZipFile.Reader(zip_file)
-xml_ind = findall([endswith(f.name, "model.xml") for f in zip.files])
+zip_reader = ZipFile.Reader(zip_file)
+xml_ind = findall([endswith(f.name, "model.xml") for f in zip_reader.files])
 @assert length(xml_ind) == 1
-model_xml = read(zip.files[xml_ind[1]], String)
+model_xml = read(zip_reader.files[xml_ind[1]], String)
 
 ## ##########################################################################
 # parse the xml file

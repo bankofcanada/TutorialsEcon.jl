@@ -42,3 +42,5 @@ function set_fp!(data::SimData, switch, range=mitrange(data))
     data[range, sw] = 1.0
     return data
 end
+
+nothing
