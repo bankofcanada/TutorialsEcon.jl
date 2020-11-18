@@ -6,8 +6,8 @@ using ModelBaseEcon
 model = Model()
 model.substitutions = true
 
-export indicator
-"Indicator function" @inline indicator(x) = convert(typeof(x), x>zero(x))
+export heaviside
+"Heaviside step function" @inline heaviside(x) = convert(typeof(x), x>zero(x))
 
 @parameters model begin
     y_dmptlur = [25.0]
@@ -873,11 +873,11 @@ end
 
     # Behavioral equations:
     "Monetary policy indicator for unemployment threshold"
-    dmptlur[t] - dmptlur_a[t] = indicator(-(y_dmptlur[1] * (lur[t] - lurtrsh[t])))
+    dmptlur[t] - dmptlur_a[t] = heaviside(-(y_dmptlur[1] * (lur[t] - lurtrsh[t])))
     "Monetary policy indicator for both thresholds"
     dmptmax[t] - dmptmax_a[t] = max(dmptlur[t], dmptpi[t])
     "Monetary policy indicator for inflation threshold"
-    dmptpi[t] - dmptpi_a[t] = indicator(-(y_dmptpi[1] * (zpic58[t] - pitrsh[t])))
+    dmptpi[t] - dmptpi_a[t] = heaviside(-(y_dmptpi[1] * (zpic58[t] - pitrsh[t])))
     "Monetary policy indicator for policy rule thresholds"
     dmptr[t] - dmptr_a[t] = max(dmptmax[t], dmptr[t - 1])
     "Price inflation aggregation adjustment"

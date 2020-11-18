@@ -30,8 +30,6 @@ if !isfile(joinpath(models_path, "FRBUS_VAR.jl")) || (
             < mtime(joinpath(models_path, "frbus_package.zip")))
     @info "Updating model files"
     include("update_models.jl")
-else
-    include("update_models.jl")
 end
 
 ## ##########################################################################
@@ -106,7 +104,7 @@ ed_r = zerodata(m, p_r)
 ed_r[ini, m.variables] = longbase[ini, m.variables]
 
 # add a little bit of noise as initial guess for the Newton-Raphson solver
-ed_r[sim, m.variables] = longbase[sim, m.variables] .+ 0.01.*randn(length(sim), length(m.variables))
+ed_r[sim, m.variables] = longbase[sim, m.variables] .+ 0.03.*randn(length(sim), length(m.variables))
 
 # shocks from sol_0
 ed_r[p_r.range, m.shocks] = sol_0[p_r.range, m.shocks]

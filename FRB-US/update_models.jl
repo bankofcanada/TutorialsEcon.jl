@@ -140,12 +140,12 @@ function cleanup_eqn(ex::Expr)
             return Expr(:ref, fn, args[1])
         end
         if @capture(ex, 1 / (1 + exp(-x_)))
-            ret = Expr(:call, :indicator, cleanup_eqn(x))
+            ret = Expr(:call, :heaviside, cleanup_eqn(x))
             # @info "Replacing" ex ret
             return ret
         end
         if @capture(ex, 1 / (1 + exp(x_)))
-            ret = Expr(:call, :indicator, Expr(:call, :-, cleanup_eqn(x)))
+            ret = Expr(:call, :heaviside, Expr(:call, :-, cleanup_eqn(x)))
             # @info "Replacing" ex ret
             return ret
         end
@@ -200,8 +200,8 @@ open(joinpath(mypath, "models", "FRBUS_VAR.jl"), "w") do fd
     println(f, "model = Model()")
     println(f, "model.substitutions = true")
     println(f)
-    println(f, "export indicator")
-    println(f, "\"Indicator function\" @inline indicator(x) = convert(typeof(x), x>zero(x))")
+    println(f, "export heaviside")
+    println(f, "\"Heaviside step function\" @inline heaviside(x) = convert(typeof(x), x>zero(x))")
     println(f)
 
     # parameters

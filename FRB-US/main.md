@@ -4,7 +4,7 @@
 
 If you wish to run the code of this tutorial, or to experiment for yourself,
 make sure to follow the instructions in
-[Introduction/Getting_started](../index.md#Getting-started)
+[Introduction/Getting_started](../index.md#Getting-started).
 
 ```@setup frbus
 using StateSpaceEcon
@@ -25,7 +25,7 @@ unique!(push!(LOAD_PATH, realpath("./models"))) # hide
 
 ## The Model File
 
-We recommend placing the model definition in its own Module in a separate Julia
+We recommend placing the model definition in its own Julia module in a separate
 source file. Although this is not strictly necessary, it helps to keep the code
 well organized and it also allows us to take advantage of pre-compilation. The
 first time we load the model file it takes some time to compile, and after that
@@ -50,12 +50,12 @@ generated from the `model.xml` file contained within
    end
    ```
 
-    A full discussion of log variables is beyond the scope of this tutorial. However
-    a very simplified explanation is that this improves the stability of the
-    numerical solver for variables which are always positive.
+    A full discussion of log variables is beyond the scope of this tutorial.
+    However a very simplified explanation is that this improves the stability of
+    the numerical solver for variables which are always positive.
 
-2. Variables which do not have an associated equation and for which data is
-   always given are declared *exogenous* using an `@exogenous` block. For
+2. Variables which do not have an associated equation, and for which data is
+   always given, are declared *exogenous* using an `@exogenous` block. For
    example
 
    ```julia
@@ -70,24 +70,24 @@ generated from the `model.xml` file contained within
 
 3. The EViews syntax is translated to Julia syntax. EViews functions `d()` and
    `dlog()` are replaced with their equivalent StateSpaceEcon *meta functions*
-   `@d()` and `@dlog()`. EViews `@movav()` is left alone, because a
-   StateSpaceEcon *meta function* by the same name already exists and does the
-   same thing. Finally, the EViews `@recode` is replaced with the equivalent
-   Julia function `ifelse()`, or were appropriate with a `min()` or a `max()`.
+   `@d()` and `@dlog()`. EViews `@movav()` is left alone, because a *meta
+   function* by the same name already exists in StateSpaceEcon, and does the
+   same thing. Finally, the EViews `@recode()` is replaced with the equivalent
+   Julia function `ifelse()`, or where appropriate with a `min()` or a `max()`.
 
 4. Several equations contain expressions matching the pattern
-   `1 / (1 + exp(±cx))`, where `c` is a large constant (usually 25) and `x` is
-   some expression. This function is a smooth approximation of the indicator
-   function. While mathematically the derivative of this function converges to
-   approximately zero everywhere outside a very small interval containing 0,
-   numerically it causes problems because it results in either 0/0 or ∞/∞. To
-   remedy this situation, we replace such patterns with the equivalent call to
-   `indicator(∓cx)`, where the function `indicator()` is defined in the model
-   file.
+   `1 / (1 + exp(-cx))`, where `c` is a large constant (usually 25) and `x` is
+   some expression. This sigmoid function is a smooth approximation of the
+   Heaviside step function for large values of `c`. While mathematically the
+   derivative of this function is well defined and converges to approximately
+   zero everywhere outside a very small interval containing 0, numerically it
+   causes problems because it results in either 0/0 or ∞/∞. To remedy this
+   situation, we replace such patterns with equivalent calls to `heaviside(cx)`,
+   where the function `heaviside()` is defined in the model file.
 
    ```julia
-   export indicator
-   "Indicator function" @inline indicator(x) = convert(typeof(x), x>zero(x))
+   export heaviside
+   "Heaviside step function" @inline heaviside(x) = convert(typeof(x), x>zero(x))
    ```
 
 ### Regenerating the Model File
@@ -105,14 +105,14 @@ in the `models/` directory and run `update_models.jl`. Of course such
 modifications can also be done directly into the existing `models/FRBUS_VAR.jl`
 file.
 
-Note that after updating `models/FRBUS_VAR.jl`, it'd be best to restart the REPL.
-The first time you load the new model module it'll take a bit longer due to
-pre-compilation.
+Note that after updating `models/FRBUS_VAR.jl`, it'd be best to restart the
+REPL. The first time you load the new model module it'll take a bit longer due
+to pre-compilation.
 
 ## Load the Model
 
 Assuming that the `models/` directory is already in the `LOAD_PATH` list, we can
-load the model by loading its module. Once loaded, the module contains a
+load the model by `using` its module. Once loaded, the module contains a
 variable `model` which represents the model object.
 
 ```@repl frbus
@@ -150,11 +150,11 @@ for now.
 ## Load the Longbase Data
 
 Unfortunately the `longbase` data is available only in EViews format, which
-cannot be read automatically by open source software (at least to my knowledge).
-For convenience here we have included the version of `longbase` from 23-07-2020
-in a csv format and a function that loads that data. The function is defined
-in file [`load_longbase.jl`](load_longbase.jl). Note that this is not a module,
-so we load it by calling `include()`, not `using`.
+cannot be read automatically by open source software (at least to our
+knowledge). For convenience, here we have included the version of `longbase` from
+23-07-2020 in a csv format and a function that loads that data. The function is
+defined in file [`load_longbase.jl`](load_longbase.jl). Note that this is not a
+module, so we load it by calling `include()`, not `using`.
 
 ```@repl frbus
 include("load_longbase.jl")
@@ -164,9 +164,9 @@ longbase = load_longbase("longbase_23072020.csv")
 
 ## Load `set_policy.jl`
 
-The model contains a number of switch variables which control which monetary
-policy function is used and which fiscal policy function is used at each period
-of the simulation. For convenience we have included functions `set_mp!()` and
+The model contains a number of switch variables to control which monetary policy
+function is used and which fiscal policy function is used at each period of the
+simulation. For convenience, we have included functions `set_mp!()` and
 `set_fp!()`, which are defined in [`set_policy.jl`](set_policy.jl).
 
 ```@repl frbus
@@ -183,10 +183,10 @@ dfp_switches
 ## Prepare the Simulation Plan
 
 The simulation is controlled by a [`Plan`](@ref) object. The plan is defined by
-a model object and simulation range. The full range handled by the plan contains
-additional periods before and after the simulation range, which account for
-initial and final conditions. By default, the simulation plan is setup such that
-all shocks are exogenous and all variables are endogenous, except for the
+a model object and a simulation range. The full range handled by the plan
+contains additional periods before and after the simulation range, which account
+for initial and final conditions. By default, the simulation plan is setup such
+that all shocks are exogenous and all variables are endogenous, except for the
 variables that are declared either in an `@exogenous` block or with the `@exog`
 declaration within an `@variables` block in the model file.
 
@@ -207,8 +207,8 @@ isempty(fin)
 
 ## Prepare the Exogenous Data
 
-We start with a simulation data that is set to 0 everywhere and we assign the
-data from `longbase`.
+We start by pre-allocating simulation data that is set to 0 everywhere.  Then we
+assign within it the data from `longbase` using Julia's `.=` operator.
 
 ```@repl frbus
 ed = zerodata(m, p);
@@ -242,7 +242,7 @@ The first simulation test is to compute the shocks given the variable paths from
 exogenous and shocks endogenous. The mapping between variables and their
 corresponding shocks is declared in the model file, so we can simply call
 [`autoexogenize!`](@ref). We make a copy of the plan `p`, so that the original
-plan would not be modified. We also make a copy of the exogenous data `ed`, so
+plan would not be modified. We also make a copy of the exogenous data, `ed`, so
 that the original would remain unchanged.
 
 ```@repl frbus
@@ -251,17 +251,17 @@ ed_0 = copy(ed)
 ```
 
 Now we run the [`simulate`](@ref) command. Note that the first time we run a
-function in Julia, it takes a bit longer due to compilation time. In this case,
-it takes much longer, because the model is very large and each and every
-equation gets compiled, together with its automatic derivative.
+function in Julia it takes a bit longer due to compilation time. In this case,
+it takes much longer because the model is very large and each and every equation
+gets compiled together with its automatic derivative.
 
 ```@repl frbus
 sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
 @test sol_0[m.variables] ≈ ed[m.variables]
 ```
 
-The compilation is done once and reused every call after that. So the second
-call to [`simulate`](@ref) is much, much faster.
+The compilation is done once and the compiled code is used in every call after
+that. So the second call to [`simulate`](@ref) is much, much faster.
 
 ```@repl frbus
 sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
@@ -269,11 +269,11 @@ sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
 
 ## Recover the Baseline Case
 
-Next simulation is a sanity test. If we run a simulation with the shocks set to
-the values we just backed out, the resulting variable paths must match the ones
-we started with.
+Next simulation is a sanity check test. If we run a simulation with the shocks
+set to the values we just backed out, the resulting variable paths must match
+the ones we started with.
 
-Once again we start with a exogenous data set everywhere to 0. Then we assign
+Once again we start with an exogenous data set everywhere to 0. Then we assign
 only the initial conditions and the shocks we just backed out.
 
 ```@repl frbus
@@ -291,16 +291,16 @@ exogenous = m.variables[isexog.(m.variables)];
 ed_r[p_r.range, exogenous] = sol_0[p_r.range, exogenous];
 ```
 
-Now, the only thing that's left is to set the initial guess for the endogenous
+Now, the only thing left is to set the initial guess for the endogenous
 variables. If we leave it at 0, that would be an initial guess too far from the
-solution and the Newton-Raphson will diverge. If we set it to the known
+solution and the Newton-Raphson will likely diverge. If we set it to the known
 solution, that would diminish this exercise to merely verifying that it is
 indeed a solution (we already know that). So, to make things a bit more
 interesting, we add a bit of noise to the true solution.
 
 ```@repl frbus
 endogenous = m.variables[.!isexog.(m.variables)];
-ed_r[sim, endogenous] = longbase[sim, endogenous] .+ 0.01.*randn(length(sim), length(endogenous));
+ed_r[sim, endogenous] = longbase[sim, endogenous] .+ 0.03.*randn(length(sim), length(endogenous));
 ```
 
 Once again we have to set the monetary policy and the fiscal policy rules, as
@@ -318,19 +318,21 @@ And finally we can run the simulation and check to make sure that indeed the
 recovered simulation matches the base case.
 
 ```@repl frbus
-sol_r = @time simulate(m, ed_r, p_r, verbose=true, tol=1e-12);
+sol_r = @time simulate(m, ed_r, p_r, verbose=true, tol=1e-9);
 @test sol_r ≈ sol_0
 ```
 
 ## Simulate a shock
 
-The last exercise is to simulate the impulse response to a unit shock in `rffintay`.
+The last exercise is to simulate the impulse response to a unit shock in
+`rffintay`.
 
 ```@repl frbus
 m.rffintay
 ```
 
-We start with the base case and add 1 to the `rffintay_a` shock at the first period of the simulation.
+We start with the base case and add 1 to the `rffintay_a` shock at the first
+period of the simulation.
 
 ```@repl frbus
 p_1 = Plan(m, sim);
