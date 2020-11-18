@@ -201,6 +201,10 @@ fin = last(sim) + 1:lastdate(p)        # range of final conditions
 Note that the `fin` range is actually empty. This is because this model doesn't
 have any leads.
 
+```@repl frbus
+isempty(fin)
+```
+
 ## Prepare the Exogenous Data
 
 We start with a simulation data that is set to 0 everywhere and we assign the
