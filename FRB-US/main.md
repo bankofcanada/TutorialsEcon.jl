@@ -1,4 +1,4 @@
-# FRB-US with VAR-based Expectations
+# FRB/US with VAR-based Expectations
 
 ## Getting started
 
@@ -31,7 +31,7 @@ well organized and it also allows us to take advantage of pre-compilation. The
 first time we load the model file it takes some time to compile, and after that
 loading is much faster.
 
-The FRB-US model we will be working with is located in
+The FRB/US model we will be working with is located in
 [`models/FRBUS_VAR.jl`](models/FRBUS_VAR.jl).  This file was automatically
 generated from the `model.xml` file contained within
 [`frbus_package.zip`](https://www.federalreserve.gov/econres/us-models-package.htm).
