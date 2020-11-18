@@ -175,7 +175,7 @@ include("set_policy.jl")
 
 dmp_switches
 
-@doc set_mp!
+@doc set_fp!
 
 dfp_switches
 ```
