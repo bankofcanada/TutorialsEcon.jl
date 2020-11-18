@@ -237,7 +237,7 @@ The first simulation test is to compute the shocks given the variable paths from
 `longbase`. To do this, we swap the variables and shocks, making variables
 exogenous and shocks endogenous. The mapping between variables and their
 corresponding shocks is declared in the model file, so we can simply call
-[`autoexpgenize!`](@ref). We make a copy of the plan `p`, so that the original
+[`autoexogenize!`](@ref). We make a copy of the plan `p`, so that the original
 plan would not be modified. We also make a copy of the exogenous data `ed`, so
 that the original would remain unchanged.
 
