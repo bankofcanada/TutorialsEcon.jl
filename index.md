@@ -54,7 +54,7 @@ pkg> instantiate
 Note that if you're working with DocsEcon.jl, there's no need to do this in
 `src/Tutorials`, even though that directory contains its own Julia environment.
 All tutorials would run under the DocsEcon.jl environment just fine. If you find
-that not to be the case, please open bug report issue in DocsEcon.jl.
+that not to be the case, please open a bug report issue in DocsEcon.jl.
 
 If you're using VSCode, make sure to set the default Julia environment for the
 workspace to the one you just instantiated.
