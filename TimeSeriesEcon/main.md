@@ -108,7 +108,7 @@ plot(TSeries(2000Q1, rand(1:3, 10)),
      TSeries(2000M1, rand(4:6, 30)),
      legend=true, 
      title="TSeries Plot", 
-     labels=["Quarterly", "Monthly"],
+     label=["Quarterly" "Monthly"],
      size=(600, 400)
     );
 ```
@@ -122,23 +122,18 @@ savefig("tseries.png")
 
 ### Conversions
 
-!!! note
-    Support for frequency conversion from low to high is under development.
+Note that support for frequency conversions is under development. 
 
 ```@repl tse
-tsmonthly = TSeries(2020M1, collect(1:12));
-
-# Monthly -> Quarterly
-tsquarterly = convert(TSeries{Quarterly}, tsmonthly)
-
-# Monthly -> Yearly
-tsyearly = convert(TSeries{Yearly}, tsmonthly)
+tsmonthly = TSeries(2020M1, collect(Float64, 1:12))
+# Monthly -> Quarterly (high to low by mean (default method))
+tsquarterly = fconvert(Quarterly, tsmonthly)
+# Monthly -> Quarterly (high to low by sum)
+fconvert(Quarterly, tsmonthly; method = :sum)
+# Monthly -> Quarterly (high to low by first value)
+fconvert(Quarterly, tsmonthly; method = :begin)
+# Monthly -> Quarterly (high to low by last value)
+fconvert(Quarterly, tsmonthly; method = :end)
+# Quarterly -> Monthly (low to high by piecewise-constant)
+fconvert(Monthly, tsquarterly)
 ```
-
-
-
-
-
-    
-
-
