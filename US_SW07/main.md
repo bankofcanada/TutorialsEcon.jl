@@ -269,7 +269,7 @@ leave the initial conditions for the shocks at 0.
 ```@repl sw07
 exog = zerodata(m, p);
 for var in variables(m)
-    exog[init_rng, var] = m.sstate[var].level
+    exog[init_rng, var] .= m.sstate[var].level
 end
 exog
 ```
@@ -317,7 +317,7 @@ there were no shocks at all, we'd expect that the economy would remain in steady
 state forever.
 
 ```@repl sw07
-ss = simulate(m, exog, p; fctype=fcslope);
+ss = simulate(m, p, exog; fctype=fcslope);
 ```
 
 The simulated data, `ss`, should equal (up to the accuracy of the solution) the
@@ -337,7 +337,7 @@ of the shock.
 Let's say that we want to shock `epinf` for the first four quarters by `0.1`.
 
 ```@repl sw07
-exog[sim_rng[1:4], :epinf] = 0.1;
+exog[sim_rng[1:4], :epinf] .= 0.1;
 exog[shocks(m)]
 ```
 
@@ -347,7 +347,7 @@ We call [`simulate`](@ref), providing the model, the exogenous data, and the
 plan. We also specify the type of final condition we want to impose.
 
 ```@repl sw07
-irf = simulate(m, exog, p, fctype=fcslope);
+irf = simulate(m, p, exog; fctype=fcslope);
 ```
 
 We can now take a look at how some of the observable variables in the model have
@@ -384,7 +384,7 @@ init_rng = first(p.range):first(sim_rng) - 1
 final_rng = last(sim_rng) + 1:last(p.range)
 exog = zerodata(m, p);
 for v in variables(m)
-    exog[init_rng, v] = m.sstate[v].level
+    exog[init_rng, v] .= m.sstate[v].level
 end
 ```
 
@@ -402,7 +402,7 @@ shk_dist = (ea = Normal(0.0, 0.4618),
             epinf = Normal(0.0, 0.1455),
             ew = Normal(0.0, 0.2089));
 for (shk, dist) in pairs(shk_dist)
-    exog[shk_rng, shk] = rand(dist, length(shk_rng))
+    exog[shk_rng, shk] .= rand(dist, length(shk_rng))
 end
 exog[shk_rng, shocks(m)]
 ```
@@ -411,8 +411,8 @@ Now we are ready to simulate. We can set the shocks to be anticipated or
 unanticipated by setting the `anticipate` parameter in [`simulate`](@ref).
 
 ```@repl sw07
-sim_a = simulate(m, exog, p; fctype=fcslope, anticipate=true);
-sim_u = simulate(m, exog, p; fctype=fcslope, anticipate=false);
+sim_a = simulate(m, p, exog; fctype=fcslope, anticipate=true);
+sim_u = simulate(m, p, exog; fctype=fcslope, anticipate=false);
 ```
 
 As before, we can review the responses of the observed variables to these shocks
@@ -474,7 +474,7 @@ historic range. We start with initial conditions.
 ```@repl sw07
 exog = zerodata(m, p);
 for v in variables(m)
-    exog[init_rng, v] = m.sstate[v].level
+    exog[init_rng, v] .= m.sstate[v].level
 end
 ```
 
@@ -483,18 +483,18 @@ version first.
 
 ```@repl sw07
 for v in observed
-    exog[hist_rng, v] = sim_a[v]
+    exog[hist_rng, v] .= sim_a[v]
 end
-back_a = simulate(m, exog, p, fctype=fcslope, anticipate=true);
+back_a = simulate(m, p, exog; fctype=fcslope, anticipate=true);
 ```
 
 Now we show the unanticipated case.
 
 ```@repl sw07
 for v in observed
-    exog[hist_rng, v] = sim_u[v]
+    exog[hist_rng, v] .= sim_u[v]
 end
-back_u = simulate(m, exog, p, fctype=fcslope, anticipate=false);
+back_u = simulate(m, p, exog; fctype=fcslope, anticipate=false);
 ```
 
 If we did everything correctly, the shocks we recovered must match exactly the
