@@ -256,7 +256,7 @@ it takes much longer because the model is very large and each and every equation
 gets compiled together with its automatic derivative.
 
 ```@repl frbus
-sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
+sol_0 = @time simulate(m, p_0, ed_0; verbose=true, tol=1e-12);
 @test sol_0[m.variables] ≈ ed[m.variables]
 ```
 
@@ -264,7 +264,7 @@ The compilation is done once and the compiled code is used in every call after
 that. So the second call to [`simulate`](@ref) is much, much faster.
 
 ```@repl frbus
-sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
+sol_0 = @time simulate(m, p_0, ed_0; verbose=true, tol=1e-12);
 ```
 
 ## Recover the Baseline Case
@@ -281,14 +281,14 @@ p_r = Plan(m, sim);
 ed_r = zerodata(m, p_r);
 
 # initial conditions for the variables are taken from longbase
-ed_r[ini, m.variables] = longbase[ini, m.variables];
+ed_r[ini, m.variables] .= longbase[ini, m.variables];
 
 # shocks are taken from from sol_0
-ed_r[p_r.range, m.shocks] = sol_0[p_r.range, m.shocks];
+ed_r[p_r.range, m.shocks] .= sol_0[p_r.range, m.shocks];
 
 # exogenous variables are also taken  from sol_0
-exogenous = m.variables[isexog.(m.variables)];
-ed_r[p_r.range, exogenous] = sol_0[p_r.range, exogenous];
+exogenous = Symbol[v for v in m.variables if isexog(v)];
+ed_r[p_r.range, exogenous] .= sol_0[p_r.range, exogenous];
 ```
 
 Now, the only thing left is to set the initial guess for the endogenous
@@ -299,8 +299,8 @@ indeed a solution (we already know that). So, to make things a bit more
 interesting, we add a bit of noise to the true solution.
 
 ```@repl frbus
-endogenous = m.variables[.!isexog.(m.variables)];
-ed_r[sim, endogenous] = longbase[sim, endogenous] .+ 0.03.*randn(length(sim), length(endogenous));
+endogenous = Symbol[v for v in m.variables if !isexog(v)];
+ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03.*randn(length(sim), length(endogenous));
 ```
 
 Once again we have to set the monetary policy and the fiscal policy rules, as
@@ -318,7 +318,7 @@ And finally we can run the simulation and check to make sure that indeed the
 recovered simulation matches the base case.
 
 ```@repl frbus
-sol_r = @time simulate(m, ed_r, p_r, verbose=true, tol=1e-9);
+sol_r = @time simulate(m, p_r, ed_r; verbose=true, tol=1e-9);
 @test sol_r ≈ sol_0
 ```
 
@@ -339,7 +339,7 @@ p_1 = Plan(m, sim);
 ed_1 = copy(sol_0);
 
 ed_1.rffintay_a[first(sim)] += 1;
-sol_1 = @time simulate(m, ed_1, p_1;  verbose=true, tol=1e-9);
+sol_1 = @time simulate(m, p_1, ed_1; verbose=true, tol=1e-9);
 
 ```
 
