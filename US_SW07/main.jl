@@ -16,7 +16,7 @@ using Plots
 using Random
 using Distributions
 
-# Fix the random see for reproducibility
+# Fix the random seed for reproducibility
 Random.seed!(1234); 
 
 nothing
