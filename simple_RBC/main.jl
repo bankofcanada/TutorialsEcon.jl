@@ -33,20 +33,25 @@ nothing
 unique!(push!(LOAD_PATH, joinpath(pwd(),"src","Tutorials","simple_RBC")))
 using simple_RBC
 m = simple_RBC.model
-m.verbose = true;
+m.options.verbose = true;
+m.options.fctype = fcnatural
 
 clear_sstate!(m)
 sssolve!(m; method = :auto)
 check_sstate(m)
+printsstate(m)
+
+##
 
 sim_rng = 2000Q1:2039Q4
 p = Plan(m, sim_rng)
 
 ss = steadystatedata(m, p)
 exog = deepcopy(ss)
-exog[sim_rng[1], :ea] .= 0.001;
+exog[sim_rng[1:4], :ea] .= 0.1;
 
-irf = simulate(m, p, exog; fctype=fcslope, initial_guess = ss, deviation = false);
+irf = simulate(m, p, exog);
+
 
 ## ##########################################################################
 ### Examining the model
