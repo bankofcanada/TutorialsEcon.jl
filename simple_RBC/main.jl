@@ -33,7 +33,6 @@ nothing
 unique!(push!(LOAD_PATH, joinpath(pwd(),"src","Tutorials","simple_RBC")))
 using simple_RBC
 m = simple_RBC.model
-m.options.verbose = true;
 m.options.fctype = fcnatural
 
 clear_sstate!(m)

@@ -4,28 +4,9 @@ You can follow the tutorial by reading this page and copying and pasting code
 into your Julia REPL session. In this case, you will need the model file,
 [`simple_RBC.jl`](simple_RBC.jl).
 
-All the code contained here is also available in this file: [`main.jl`](main.jl).
-
 ```@contents
 Pages = ["main.md"]
 Depth = 3
-```
-
-```@setup simple_RBC
-using StateSpaceEcon
-using ModelBaseEcon
-using TimeSeriesEcon
-
-using Test
-using Plots
-using Random
-using Distributions
-
-# Fix the random seed for reproducibility.
-Random.seed!(1234);
-
-# We need the model file [`simple_RBC.jl`](simple_RBC.jl) to be on the search path for modules.
-unique!(push!(LOAD_PATH, realpath("."))) # hide
 ```
 
 ## Part 1: The model
@@ -158,6 +139,25 @@ The next part will discuss how to implement the simple RBC model in `StateSpaceE
 
 ## Part 2: Implementation of the model in `StateSpaceEcon`
 
+### Installing the packages
+
+We start by installing the packages needed for this tutorial.
+
+```@repl simple_RBC
+using StateSpaceEcon
+using ModelBaseEcon
+using TimeSeriesEcon
+
+using Test
+using Plots
+using Random
+using Distributions
+
+# Fix the random seed for reproducibility.
+Random.seed!(1234);
+
+```
+
 ### Writing the model file
 
 In `StateSpaceEcon`, a model is written in its own dedicated module, which is contained in its
@@ -168,15 +168,15 @@ A docstring can be added to the model to provide more details:
     """
     Simple RBC Model
     Model available at: https://archives.dynare.org/DynareShanghai2013/order1.pdf
-    Presentation: Villemot, S., 2013. First order approximation of stochastic models. Shanghai Dynare Workshop. https://archives.dynare.org/DynareShanghai2013/order1.pdf
+    Presentation: Villemot, S., 2013. First order approximation of stochastic models. Shanghai Dynare Workshop.
     """
 ```
 
 Then, the module is created with the same name as the model and the associated file name.
 The model will be constructed with macros taken from the package `ModelBaseEcon`.
-So, we need to load the module with `using ModelBaseEcon`.
+So, we need to load the module `ModelBaseEcon` within the module `simple_RBC` with `using ModelBaseEcon`.
 The model will itself be a global variable called `model` within the module `simple_RBC`.
-The command `const` declares global variables in Julia and the function `Model()` constructs a new model object.
+The command `const` declares global variables that will not change and the function `Model()` constructs a new model object.
 
 ```julia
 module simple_RBC
@@ -186,27 +186,38 @@ module simple_RBC
 end # module
 ```
 
-We can specify that the model is stationary by setting the flag `ssZeroSlope` to `true`.
-We will discuss flags and options further below.
+The model object can hold three sets of parameters: flags, options and model parameters. Flags and options can be adjusted from the model file itself after the constant declaration. Typically, this is done in the model file before calling [`@initialize`](@ref).
+
+Flags are (usually boolean) values which characterize the type of model we have.
+For example, we can specify that the model is stationary by setting the flag `ssZeroSlope` to `true`.
 
 ```julia
 model.flags.ssZeroSlope = true
 ```
-
-We can also preset model options with the function [`setoption!`](@ref).
-Below, we set `tol` and `maxiter`, which set the desired accuracy and maximum number of
-iterations for the iterative solvers.
+ 
+Options are values that adjust the operations of the algorithms.
+We can preset model options with the function [`setoption!`](@ref).
+Below, we set the desired accuracy with `tol` and we set `maxiter` for the maximum number of
+iterations for the iterative solvers. Auxiliary variables will not be created and substituted to help the solver (`substitutions`). We will opt for QR factorization, which is slower but more robust than LU factorization. Finally, we will set `verbose` to `true` to provide more information from the commands.
 
 ```julia
 setoption!(model) do o
-    o.tol = 1e-12
+    o.tol = 1e-14
     o.maxiter = 100
+    o.substitutions = false
+    o.factorization = :qr
+    o.verbose = true
 end # options
 ```
 
+Many functions in `StateSpaceEcon` have optional arguments of the same name as a
+model option. When the argument is not explicitly given in the function call,
+these functions will use the value from the model option of the same name. \
+
 The rest of the model is specified with macros which do not have to be in any particular order. \
 \
-The macro [`@parameters`](@ref) assigns parameter values to the model. A link between parameters can be created with the macro `@link`. Below, the parameter ``\beta`` depends on the parameter ``\rho``.
+In addition to falgs and options, the model object also holds model parameters, which are values that appear in the model
+equations. The macro [`@parameters`](@ref) assigns parameter values to the model. A link between parameters can be created with the macro `@link`. Below, the parameter ``\beta`` depends on the parameter ``\rho``.
 
 ```julia
 @parameters model begin
@@ -220,10 +231,10 @@ The macro [`@parameters`](@ref) assigns parameter values to the model. A link be
 end # parameters
 ```
 
-Similarly, model variables are specified with the macro [`@variables`](@ref). Variables can be declared one line at a time (as with the shocks previously), or over one line by separating them with semicolons `;`. 
+Similarly, model variables are specified with the macro [`@variables`](@ref). Variables can be declared one line at a time (as with the parameters previously), or over one line by separating them with semicolons `;`. Alternatively, we use the macro [`@logvariables`](@ref) to indicate to the solver the work with the log of the variables. For instance, instead of working with ``C_t``, the solver will work directly with the logarithm as a standalone variable (``logC_t=e^{\log(C_t)}``). This can help the solver to avoid computing the logarithm of a negative value.
 
 ```julia
-@variables model begin
+@logvariables model begin
     C; K; L; w; r; A;
 end # variables
 ```
@@ -250,20 +261,27 @@ The macro [`@autoexogenize`](@ref) links a variable with a shock. This can be us
 end # autoexogenize
 ```
 
-The dynamic equations of the model are embedded within the macro [`@equations`](@ref). The variables have to be indexed with `t`. For instance, `K[t-1]` refers to the capital stock on `t-1` and `C[t+1]` refers to the expectation on `t` for consumption on `t+1`, or ``E_t(C_{t+1})``.
+The dynamic equations of the model are embedded within the macro [`@equations`](@ref). The variables have to be indexed with `t`. For instance, `K[t-1]` refers to the capital stock on `t-1` and `C[t+1]` refers to the expectation on `t` for consumption on `t+1`, or ``E_t(C_{t+1})``. When variables can be separated by a logarithm, it will help the solver to put the macro `@log` in from of an equation. In this way, the residual will be computed as the difference between the logarithm on the left-hand side and the logarithm on the right-hand side. For instance, the solver will prefer to work with the second equation below, which is linear.
+
+```math
+\begin{aligned}
+    \frac{1}{\hat{C}_t} &= \frac{1}{1+\rho} E_t \left(\frac{1}{\hat{C}_{t+1}(1+g)}(r_{t+1}+1-\delta) \right) \\
+    \log{{\hat{C}_t}} &= \log{(1+\rho)} + E_t \left(\log{\hat{C}_{t+1}}\log(1+g)-\log(r_{t+1}+1-\delta) \right)
+\end{aligned}
+```
 
 ```julia
 @equations model begin
-    1/C[t] = β*(1/(C[t+1]*(1+g)))*(r[t+1]+1-δ)
-    L[t]^γ = w[t]/C[t]
-    r[t] = α*A[t]*(K[t-1]/(1+g))^(α-1)*L[t]^(1-α)
-    w[t] = (1-α)*A[t]*(K[t-1]/(1+g))^α*L[t]^(-α)
-    K[t]+C[t] = A[t]*(K[t-1]/(1+g))^α*L[t]^(1-α)+(1-δ)*(K[t-1]/(1+g))
-    log(A[t]) = λ*log(A[t-1])+ea[t]
+    @log 1/(C[t]) = β * (1 / (C[t+1]*(1+g))) * (r[t+1]+1-δ)
+    @log (L[t])^γ = w[t] / C[t]
+    @log r[t] = α * A[t] * (K[t-1]/(1+g)) ^ (α-1) * (L[t]) ^ (1-α)
+    @log w[t] = (1-α) * A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (-α)
+    K[t] + C[t] = A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (1-α) + (1-δ) * (K[t-1]/(1+g))
+    log(A[t]) = λ * log(A[t-1]) + ea[t]
 end # equations
 ```
 
-Once the parameters, the variables, the shocks and the equations have been specified, the macro [`@initialize`](@ref) constructs the model within the module.
+Once the parameters, the variables, the shocks and the equations have been specified, the macro [`@initialize`](@ref) constructs the model within the module `simple_RBC`.
 
 ```julia
 @initialize(model)
@@ -272,9 +290,15 @@ Once the parameters, the variables, the shocks and the equations have been speci
 ### Loading the model
 
 We load the module that contains the model with `using simple_RBC`; the
-model itself is a global variable called `model` within that module, which we assign to `m` in the Main module.
+model itself is a global variable called `model` within that module, which we assign to `m` in the `Main` module.
+
+!!! note "Important note"
+    For the `using simple_RBC` command to work, we need the model file [`simple_RBC.jl`](simple_RBC.jl) to be on the search path for modules. We can do this by:
+    1) Pushing the file path to `LOAD_PATH` global variable (which we do below for simplicity);
+    2) Adding the model as a standalone package and installing it as: `using Pkg; Pkg.add("/[path to the package]/simple_RBC")`
 
 ```@repl simple_RBC
+unique!(push!(LOAD_PATH, realpath(".")));
 using simple_RBC
 m = simple_RBC.model
 ```
@@ -284,6 +308,13 @@ m = simple_RBC.model
 We can see the entire model with `fullprint`.
 ```@repl simple_RBC
 fullprint(m)
+```
+
+We can see the flags and the options of the model.
+
+```@repl simple_RBC
+m.flags
+m.options
 ```
 
 We can also examine individual components using the commands `parameters`, `variables`, `shocks` and `equations`.
@@ -326,60 +357,13 @@ m.β
 However, the dynamic links only work with parameter values. Otherwise, the function [`update_links!`](@ref) needs to be called to refresh all the links.
 
 ```julia
-@update_link!(model)
+update_links!(m)
 ```
 
 !!! note "Important note"
     Links will not be automatically updated if:
     * Links contain a reference outside the model parameters, such as the steady state or a model in a parent module
     * A parameter is not a number, such as if an element of a parameter vector is updated.
-
-### Model flags and options
-
-In addition to model parameters, which are values that appear in the model
-equations, the model object also holds two other sets of parameters, namely
-flags and options.
-
-Flags are (usually boolean) values which characterize the type of model we have.
-For example, a linear model should have its `linear` flag set to `true`.
-Typically, this is done in the model file before calling [`@initialize`](@ref).
-
-```@repl simple_RBC
-m.flags
-```
-
-If the model is stationary, we would set the `ssZeroSlope` flag to `true`.
-
-```@repl simple_RBC
-m.flags.ssZeroSlope
-```
-
-Options are values that adjust the operations of the algorithms. For example, we
-have `tol` and `maxiter`, which set the desired accuracy and maximum number of
-iterations for the iterative solvers. These can be adjusted as needed at any
-time. Another useful option is `verbose`, which controls the level of verbosity
-of the different commands.
-
-Many functions in `StateSpaceEcon` have optional arguments of the same name as a
-model option. When the argument is not explicitly given in the function call,
-these functions will use the value from the model option of the same name.
-
-```@repl simple_RBC
-m.verbose = true
-m.options
-```
-
-Flags and options can be adjusted from the model file itself after the constant declaration.
-
-```julia
-model.flags.ssZeroSlope = true
-setoption!(model) do o
-    o.tol = 1e-12
-    o.maxiter = 100
-    o.verbose = true
-end
-```
-
 ## Part 3: The steady state solution
 
 The steady state is a special solution of the dynamic system that remains
@@ -491,7 +475,7 @@ sim_rng = 2000Q1:2039Q4
 p = Plan(m, sim_rng)
 ```
 
-The plan shows us the list of exogenous values (variable or shocks) for each
+The plan shows us the list of exogenous values (variables or shocks) for each
 period or sub-range of the simulation. By default, all shocks are exogenous and
 all variables are endogenous.
 
@@ -508,6 +492,8 @@ final_rng = last(sim_rng)+1:last(p.range)     # the range for final conditions
 @test length(init_rng) == m.maxlag
 @test length(final_rng) == m.maxlead
 ```
+
+The function [`exportplan`](@ref) can be used to save a plan to a TXT or CSV file which can be opened to visualize the plan. Alternatively, the function [`importplan`](@ref) can load the plan back into Julia from the TXT or CSV file.
 
 ### Exogenous data
 
@@ -526,7 +512,7 @@ exog = steadystatedata(m, p)
 
 #### Final conditions
 
-For the final conditions we can use the steady state again, because we expect
+For the final conditions, we can use the steady state again, because we expect
 that the economy will eventually return to it if the simulation is sufficiently
 long past the last shock. We can do this by assigning the values of the steady
 state to the final periods after the simulation, similarly to what we did with the
@@ -545,6 +531,36 @@ the exogenous data array because those values would be ignored.
     non-zero slope, or the steady state has zero slope but the level is not
     unique, we should use `fctype=fcslope`.
 
+If the steady state is not solved or if we prefer not to depend on it, we can use `fctype=fcnatural`.
+The final conditions will be constructed assuming that the last simulation period reflects the first difference of the steady state.
+For a stationary model, the simulation needs to be long enough so that variables do not change anymore.
+In a model where the steady state has non-zero slope, non-stationary variables have to grow at a stable pace by the end of the simulation.
+
+We can set the default option for the simple RBC model outside the model dedicated module.
+
+```@repl simple_RBC
+m.options.fctype = fcnatural
+```
+Otherwise, this option can be set within the model model but the StateSpaceEcon package must be installed within the module. For instance:
+
+``` julia
+module simple_RBC
+    using ModelBaseEcon
+    using StateSpaceEcon
+    const model = Model()
+    model.flags.ssZeroSlope = true
+    setoption!(model) do o
+        o.tol = 1e-14
+        o.maxiter = 100
+        o.substitutions = false
+        o.factorization = :qr
+        o.verbose = true
+        o.fctype = fcnatural
+    end # options
+    # Rest of the model...
+end
+```
+
 #### A quick sanity check
 
 If we were to run a simulation where the economy started in the steady state and
@@ -552,14 +568,19 @@ there were no shocks at all, we'd expect that the economy would remain in steady
 state forever.
 
 ```@repl simple_RBC
-ss = simulate(m, p, exog; fctype=fcslope);
+ss = simulate(m, p, exog);
 @test ss ≈ steadystatedata(m, p)
 ```
 
 The simulated data, `ss`, should equal (up to the accuracy of the solution) the
 steady state data. Similar to [`steadystatedata`](@ref), we can use
-[`zerodata`](@ref) to create a data set containing the deviation from the steady state
+[`zerodata`](@ref) to create a data set containing with zeros to work in the deviation from the steady state
 solution.
+
+```@repl simple_RBC
+zz = simulate(m, p, zerodata(m, p); deviation = true);
+@test zz ≈ zerodata(m, p)
+```
 
 #### Exogenous data
 
@@ -576,23 +597,25 @@ exog[shocks(m)]
 #### Running the simulation
 
 We call [`simulate`](@ref), providing the model, the exogenous data, and the
-plan. We also specify the type of final condition we want to impose.
+plan. We also specify the type of final condition we want to impose if we want to diverge from the option setting saved in the model.
 
 ```@repl simple_RBC
-irf = simulate(m, p, exog; fctype=fcslope);
+irf = simulate(m, p, exog; fctype=fcslope)
 ```
 
 We can now take a look at how some of the variables in the model have
-responded to this shock. We use `plot` from the `Plots` package to for that. We
+responded to this shock. We use `plot` from the `Plots` package. We
 specify the variables we want to plot using `vars` and the names of the
-datasets being plotted (for the legend) in the `names` option.
+datasets being plotted (for the legend) in the `labels` option.
 
 ```@repl simple_RBC
+model_vars = [var.name for var in m.variables]; # model variables are taken from the model
 plot(ss, irf,
-     vars=(:A, :C, :K, :L),
-     names=("SS", "IRF"),
+     vars=model_vars,
+     labels=("Steady state","Impulse response"),
      legend=[true false false false],
-     size=(600, 400)
+     size=(600, 400),
+     xrotation = 45,
     );
 ```
 
@@ -601,6 +624,131 @@ savefig("irf.png")
 ```
 
 [![Impulse Response Graph](irf.png)](irf.png)
+
+## Part 5: Stochastic shocks simulation
+
+Now let's run a simulation with stochastic shocks. We will have random shocks
+over two years and then have no shocks for several years afterwards to allow
+time for the economy to return to its steady state.
+
+```@repl simple_RBC
+sim_rng = 2000Q1:2049Q4      # simulate 50 years starting 2000
+shk_rng = 2004Q1 .+ (0:7)    # shock 8 quarters starting in 2004
+p = Plan(m, sim_rng)
+exog = steadystatedata(m, p);
+```
+
+The distribution of the shock is assumed normal with mean zero. We use packages `Distributions` and `Random` to draw the
+necessary random values.
+
+```@repl simple_RBC
+shk_dist = (ea = Normal(0.0, 0.10),);
+for (shk, dist) in pairs(shk_dist)
+    exog[shk_rng, shk] .= rand(dist, length(shk_rng))
+end
+exog[shk_rng, shocks(m)]
+```
+
+Now we are ready to simulate. We can set the shocks to be anticipated or
+unanticipated by setting the `anticipate` parameter in [`simulate`](@ref).
+
+```@repl simple_RBC
+sim_a = simulate(m, p, exog; fctype=fcnatural, anticipate=true);
+sim_u = simulate(m, p, exog; fctype=fcnatural, anticipate=false);
+```
+
+As before, we can review the responses of variables to the shock using `plot`.
+
+```@repl simple_RBC
+observed = collect(keys(m.autoexogenize)); # the observed variable is from the autoexogenize list
+ss = steadystatedata(m, p);
+plot(ss, sim_a, sim_u,
+     vars=model_vars,
+     labels=("SS", "Anticipated", "Unanticipated"),
+     legend=[true (false for i = 1:length(model_vars))...],
+     linewidth=1.5,   # hide
+     size=(900, 600),  # hide
+     xrotation = 45,
+    );
+```
+
+```@setup simple_RBC
+savefig("stoch_shk.png")
+```
+
+[![Stochastic Shock Response Graph](stoch_shk.png)](stoch_shk.png)
+
+We see that when the shock is anticipated, the variables start to react to
+them right away; in the unanticipated case, there is no movement until the
+technology shock actually hit.
+
+## Part 5: Backing out historical shocks
+
+Now let's pretend that the simulated values for `A` are historical data and that we do
+not know the magnitude of the shock `ea`. We can treat the observed (simulated)
+values of the variable `A` as known by making them exogenous. At the same time we
+will make the shock endogenous, so that we can solve for their values during
+the simulation.
+
+We use [`exogenize!`](@ref) and [`endogenize!`](@ref) to set up a plan in which
+the observed variable is exogenous and the shock is endogenous throughout the stochastic range.
+
+```@repl simple_RBC
+endogenize!(p, shocks(m), shk_rng);
+exogenize!(p, observed, shk_rng);
+p
+```
+
+Another possibility is to use the `autoexogenize` command, which will use the default pairing provided in the model under `@autoexogenize`.
+
+```@repl simple_RBC
+autoexogenize!(p, m, shk_rng)
+```
+
+As we can see above, the plan now reflects our intentions.
+
+Finally, we need to set up the exogenous data. This time we do not specify the
+shocks; instead, we assign the known data for the observed variables for the
+historic range. We start with initial conditions.
+
+```@repl simple_RBC
+exog = steadystatedata(m, p);
+```
+
+We take the observed data from the simulation above. We show the anticipated
+version first.
+
+```@repl simple_RBC
+for v in observed
+    exog[shk_rng, v] .= sim_a[v]
+end
+back_a = simulate(m, p, exog; fctype=fcnatural, anticipate=true);
+```
+
+Now we show the unanticipated case.
+
+```@repl simple_RBC
+for v in observed
+    exog[shk_rng, v] .= sim_u[v]
+end
+back_u = simulate(m, p, exog; fctype=fcnatural, anticipate=false);
+```
+
+If we did everything correctly, the shocks we recovered must match the
+shocks we used when we simulated the data.
+
+```@repl simple_RBC
+@test sim_a[:ea] ≈ back_a[:ea]
+@test sim_u[:ea] ≈ back_u[:ea]
+```
+
+Moreover, we must have the unobserved variables match as well. In fact, all the
+data must match over the entire simulation range.
+
+```@repl simple_RBC
+@test sim_a ≈ back_a
+@test sim_u ≈ back_u
+```
 
 ## Appendix
 
