@@ -607,7 +607,7 @@ plot(ss, irf,
      vars=model_vars,
      legend= :none,
      size=(600, 400),
-     xrotation = 45, margin = 6Plots.mm,
+     xrotation = 45, margin = 8Plots.mm,
     );
 ```
 
@@ -661,7 +661,7 @@ plot(ss, sim_a, sim_u,
      legend=[true (false for i = 2:length(model_vars))...],
      linewidth=1.5,   # hide
      size=(900, 600),  # hide
-     xrotation = 90, margin = 6Plots.mm,
+     xrotation = 90, margin = 8Plots.mm,
     );
 ```
 
