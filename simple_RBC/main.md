@@ -144,15 +144,7 @@ The next part will discuss how to implement the simple RBC model in `StateSpaceE
 We start by installing the packages needed for this tutorial.
 
 ```@repl simple_RBC
-using StateSpaceEcon
-using ModelBaseEcon
-using TimeSeriesEcon
-
-using Test
-using Plots
-using Random
-using Distributions
-
+using StateSpaceEcon, ModelBaseEcon, TimeSeriesEcon, Test, Plots, Random, Distributions
 # Fix the random seed for reproducibility.
 Random.seed!(1234);
 
@@ -609,13 +601,13 @@ specify the variables we want to plot using `vars` and the names of the
 datasets being plotted (for the legend) in the `labels` option.
 
 ```@repl simple_RBC
+gr(display_type=:inline) # hide
 model_vars = [var.name for var in m.variables]; # model variables are taken from the model
 plot(ss, irf,
      vars=model_vars,
-     labels=("Steady state","Impulse response"),
-     legend=[true false false false],
+     legend= :none,
      size=(600, 400),
-     xrotation = 45,
+     xrotation = 45, margin = 12Plots.mm,
     );
 ```
 
@@ -662,13 +654,14 @@ As before, we can review the responses of variables to the shock using `plot`.
 ```@repl simple_RBC
 observed = collect(keys(m.autoexogenize)); # the observed variable is from the autoexogenize list
 ss = steadystatedata(m, p);
+gr(display_type=:inline) # hide
 plot(ss, sim_a, sim_u,
      vars=model_vars,
      labels=("SS", "Anticipated", "Unanticipated"),
-     legend=[true (false for i = 1:length(model_vars))...],
+     legend=[true (false for i = 2:length(model_vars))...],
      linewidth=1.5,   # hide
      size=(900, 600),  # hide
-     xrotation = 45,
+     xrotation = 90, margin = 12Plots.mm,
     );
 ```
 
