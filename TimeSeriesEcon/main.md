@@ -142,15 +142,15 @@ macro-economic time series. It is similar to a
 [`Vector`](https://docs.julialang.org/en/v1/base/arrays/#Base.Vector), but with
 added functionality for time series.
 
-The `TSeries` type inherits from the built-in
+The [`TSeries`](@ref) type inherits from the built-in
 [`AbstractArray`](https://docs.julialang.org/en/v1/base/arrays/#Core.AbstractArray)
 and supports all the basic operations of 1-dimensional arrays in Julia. Refer to
 the article on
 [Multi-dimensional Arrays](https://docs.julialang.org/en/v1/manual/arrays/#man-multi-dim-arrays)
 in the Julia manual for details.
 
-Type `TSeries` is also a generic data type. It depends on two type-paremeters:
-its frequency and the data type of its elements.
+Type [`TSeries`](@ref) is also a generic data type. It depends on two
+type-paremeters: its frequency and the data type of its elements.
 
 ### Creation of `TSeries`
 
@@ -164,7 +164,7 @@ ts = TSeries(2020Q1, vals)
 ```
 The frequency of the given [`MIT`](@ref) determines the frequency of the
 [`TSeries`](@ref). Similarly, the type of the elements of the `vals` array
-determines the element type of the TSeries.
+determines the element type of the [`TSeries`](@ref).
 
 !!! note "Important Caveat"
 
@@ -209,7 +209,7 @@ TSeries(rng, rand)  # random numbers
     TSeries(rng, zeros) # element type is FLoat64
     ```
 
-#### Other ways to construct [`TSeries`](@ref)
+#### Other ways to construct `TSeries`
 
 We can also construct new [`TSeries`](@ref) from existing [`TSeries`](@ref). The
 function [`similar(::TSeries)`](@ref) creates an uninitialized copy, meaning
@@ -303,8 +303,8 @@ For this we use `.=` instead of `=`.
 t[end-2:end] .= 42
 t
 ```
-The same way we can reset the entire `TSeries` to a constant using
-`.=` without specifying the range. This would update the exising `TSeries` in
+The same way we can reset the entire [`TSeries`](@ref) to a constant using `.=`
+without specifying the range. This would update the exising [`TSeries`](@ref) in
 place.
 ```@repl tse
 t .= pi
@@ -313,9 +313,9 @@ Without the dot, i.e., `t = pi`, `t` would become a completely different
 variable with value `pi`.
 
 Unlike `Vector`s, with [`TSeries`](@ref) we are allowed to assign outside the
-stored range. Doing this resizes the `TSeries` as necessary. If there is a gap,
-that is a part of the new range which is neither in the old range nor in the
-assignment range, it is filled with `NaN`.
+stored range. Doing this resizes the [`TSeries`](@ref) as necessary. If there is
+a gap, that is a part of the new range which is neither in the old range nor in
+the assignment range, it is filled with `NaN`.
 ```@repl tse
 t[1999Q1:1999Q2] .= -3.7
 t
@@ -337,7 +337,7 @@ t[1999Q3:2000Q2] .= q
 t
 ```
 
-## Arithmetic with [`TSeries`](@ref)
+## Arithmetic with `TSeries`
 
 There are two kinds of arithmetic operations with [`TSeries`](@ref). One kind is
 where we treat the time series as a single object. Similarly to vectors, we have
@@ -385,8 +385,9 @@ y .^ 3    # broadcasting y-cubed
 
 When assigning the result of a broadcasting operation within an existing
 [`TSeries`](@ref) we have to use `.=` and may optionally specify a range on the
-left-hand side. When we specify a range on the left-hand side the `TSeries` on
-the left is resized, if necessary, to include the given range.
+left-hand side. When we specify a range on the left-hand side the
+[`TSeries`](@ref) on the left is resized, if necessary, to include the given
+range.
 ```@repl tse
 z = copy(x)
 z .=  1 .+ y  # assign only within the common range of x and y
@@ -397,7 +398,7 @@ z
 
 Broadcasting operations also can be done with mixing [`TSeries`](@ref) and
 `Vector`s in the same expression. In this case, the `Vector` must be of the same
-length as the `TSeries` and the result is a [`TSeries`](@ref).
+length as the [`TSeries`](@ref) and the result is a [`TSeries`](@ref).
 ```@repl tse
 v = 3ones(size(x))
 x .+ v
@@ -527,8 +528,8 @@ determined from the first date and the number of rows.
 x = MVTSeries(2020Q1, (:a, :b), rand(6, 2))
 ```
 
-Similarly to [`TSeires`](@ref), if we specify a range (rather than a single
-[`MTI`](@ref)), the [`MVTSeries`](@ref) will be able to allocate its own
+Similarly to [`TSeries`](@ref), if we specify a range (rather than a single
+[`MIT`](@ref)), the [`MVTSeries`](@ref) will be able to allocate its own
 storage. In this case, we can optionally provide an initializer in the form of a
 constant value or a function.
 ```@repl tse
@@ -824,6 +825,9 @@ the absolute tolerance of the comparison with `atol=`.
 ```@repl tse
 @compare(v1, v2, atol=1e-5)
 ```
+Keep in mind that when comparing two `NaN` values the result is `false`. This
+can be changed by setting `nans=true`. 
+
 
 Other useful parameters include `ignoremissing`, which can be set to `true` in
 order to compare only variables that exist in both inputs, and `showequal` which
