@@ -13,89 +13,84 @@ Depth = 3
 
 ### The simple RBC model
 
-In this tutorial, we will use the simple RBC model presented by [Villemot (2013)](https://archives.dynare.org/DynareShanghai2013/order1.pdf).
+In this tutorial, we will use the simple RBC model presented by
+[Villemot (2013)](https://archives.dynare.org/DynareShanghai2013/order1.pdf).
 
-A representative agent maximizes the expected discounted sum of his utility by choosing consumption ``C_t`` and labour ``L_t`` for ``t=1,...,\infty``.
+In period ``t=1,\ldots,\infty``, a representative household consumes ``C_t``; it
+also provides labour ``L_t`` and rents capital ``K_{t-1}`` to the firm. ``K_t``
+is the capital stock at the end of period ``t``, and is available to be rented
+out during ``t+1``.
 
+Consumption, labour and capital are chosen in order to maximize the sum of
+discounted expected utility
 ```math
-\displaystyle\sum_{n=1}^\infty\beta^{t-1}E_t\left[\log(C_t)-\frac{L_t^{1+\gamma}}{1+\gamma}\right]
+\displaystyle\sum_{t=1}^\infty\beta^{t-1}E_t\left[\log(C_t)-\frac{L_t^{1+\gamma}}{1+\gamma}\right]
 ```
-
-The household provides labour and rents capital to firms.
-* ``\beta=\frac{1}{1+\rho}`` is the discount rate and ``\rho \in (0,\infty)`` is the rate of time preference;
-* ``\gamma \in (0,\infty)`` is a labour supply parameter.
-
-The household faces the following sequence of budget constraints:
-
+under the sequence of budget constraints
 ```math
-\displaystyle K_t=K_{t-1}(1-\delta)+w_tL_t+r_tK_{t-1}-C_t
+\displaystyle K_t=K_{t-1}(1-\delta)+w_tL_t+r_tK_{t-1}-C_t,
 ```
-
-Where:
-* ``K_t`` is the capital at the end of the period;
-* ``\delta \in (0,1)`` is the rate of depreciation of capital;
-* ``w_t`` is the real wage;
+where
+* ``\beta=\frac{1}{1+\rho}`` is the discount rate and ``\rho \in (0,\infty)`` is the rate of time preference,
+* ``\gamma \in (0,\infty)`` is the labour supply parameter,
+* ``\delta \in (0,1)`` is the rate of depreciation of capital,
+* ``w_t`` is the real wage, and
 * ``r_t`` is the real rental rate.
 
-The production function is written as:
-
+In period ``t``, the firm uses labour ``L_t`` and capital ``K_{t-1}`` to produce
+``Y_t`` according to the production function
 ```math
-\displaystyle Y_t=A_tK_{t-1}^\alpha((1+g)^tL_t)^{1-\alpha}
+\displaystyle Y_t=A_tK_{t-1}^\alpha((1+g)^tL_t)^{1-\alpha},
 ```
-
-Where:
-* ``g \in (0,\infty)`` is the growth rate;
+where
+* ``g \in (0,\infty)`` is the growth rate, and 
 * ``\alpha`` is the output elasticity of labour.
-
-``A_t`` is a technological shock that follows an AR(1) process.
-
+The firm chooses labour and capital in order to maximize profits
 ```math
-\displaystyle \log(A_t)=\lambda\log(A_{t-1})+e_t
+\displaystyle \max_{L_t,K_{t-1}} A_t K_{t-1}^\alpha ((1+g)^t L_t)^{1-\alpha} - r_t K_{t-1} - w_t L_t.
 ```
 
-Where:
-* ``e_t`` is an i.i.d. zero-mean normally distributed error term with a standard deviation of ``\gamma``;
+``A_t`` is a technological shock that follows the AR(1) process
+```math
+\displaystyle \log(A_t)=\lambda\log(A_{t-1})+e_t,
+```
+where
+* ``e_t`` is an i.i.d. zero-mean normally distributed error term with standard deviation ``\gamma``, and
 * ``\lambda \in (0,1)`` is a parameter governing the persistence of the shock.
 
 ### The household problem
 
-The constrained maximization problem can be written as a Lagrangian:
+The Lagrangian of the constrained maximization is
 
 ```math
 \displaystyle \mathcal{L}(C_t,L_t,K_t) = \sum_{t=1}^\infty\beta^{t-1}E_t\left[\log(C_t)-\frac{L_t^{1+\gamma}}{1+\gamma}-\mu_t(K_t-K_{t-1}(1-\delta)-w_tL_t-r_tK_{t-1}+C_t)\right]
 ```
 
-The first order conditions are:
+The first order conditions are
 ```math
 \begin{aligned}
-    \frac{\partial\mathcal{L}}{\partial C_t} &= \left(\frac{1}{1+\rho}\right)^{t-1} \left(\frac{1}{C_t} - \mu_t \right) = 0 \\
-    \frac{\partial\mathcal{L}}{\partial L_t} &= \left(\frac{1}{1+\rho}\right)^{t-1} \left(L_t^\gamma - \mu_t w_t \right) = 0 \\
-    \frac{\partial\mathcal{L}}{\partial K_t} &= -\left(\frac{1}{1+\rho} \right)^{t-1} \mu_t + \left(\frac{1}{1+\rho} \right)^t E_t
-        \left(\mu_{t+1}(1-\delta+r_t) \right) = 0
+    \frac{\partial\mathcal{L}}{\partial C_t} &= \beta^{t-1} \left(\frac{1}{C_t} - \mu_t \right) = 0 \\
+    \frac{\partial\mathcal{L}}{\partial L_t} &= \beta^{t-1} \left(L_t^\gamma - \mu_t w_t \right) = 0 \\
+    \frac{\partial\mathcal{L}}{\partial K_t} &= -\beta^{t-1} \mu_t + \beta^t E_t
+        \left(\mu_{t+1}(1-\delta+r_{t+1}) \right) = 0.
 \end{aligned}
 ```
 
-Once we eliminate the Lagrange multiplier ``\mu_t``, we get:
+Once we eliminate the Lagrange multiplier ``\mu_t``, we get
 ```math
 \begin{aligned}
     L_t^\gamma &= \frac{w_t}{C_t} \\
-    \frac{1}{C_t} &= \frac{1}{1+\rho} E_t \left(\frac{1}{C_{t+1}}(r_{t+1}+1-\delta) \right)
+    \frac{1}{C_t} &= \beta E_t \left(\frac{1}{C_{t+1}}(r_{t+1}+1-\delta) \right).
 \end{aligned}
 ```
 
 ### The firm problem
 
-The firm chooses labour and capital in order to maximize profits:
-
-```math
-\displaystyle \max_{L_t,K_{t-1}} A_t K_{t-1}^\alpha ((1+g)^t L_t)^{1-\alpha} - r_t K_{t-1} - w_t L_t
-```
-
-The first order conditions are:
+The first order conditions are
 ```math
 \begin{aligned}
     r_t &= \alpha A_t K_{t-1}^{\alpha-1}((1+g)^t L_t)^{1-\alpha} \\
-    w_t &= (1-\alpha)A_t K_{t-1}^\alpha ((1+g)^t)^{1-\alpha} L_t^{-\alpha}
+    w_t &= (1-\alpha)A_t K_{t-1}^\alpha ((1+g)^t)^{1-\alpha} L_t^{-\alpha}.
 \end{aligned}
 ```
 
@@ -114,7 +109,7 @@ with the goods market equilibrium.
 
 Based on the goods market equilibrium, consumption and capital must be growing at the same rate: ``g_c=g_k=g``.
 
-Thus, we can define stationary variables as:
+Thus, we can define stationary variables as
 ```math
 \begin{aligned}
     \hat{C}_t &= \frac{C_t}{(1+g)^t} \\
@@ -166,8 +161,8 @@ A docstring can be added to the model to provide more details:
 
 Then, the module is created with the same name as the model and the associated file name.
 The model will be constructed with macros taken from the package `ModelBaseEcon`.
-So, we need to load the module `ModelBaseEcon` within the module `simple_RBC` with `using ModelBaseEcon`.
-The model will itself be a global variable called `model` within the module `simple_RBC`.
+So, we need to load `ModelBaseEcon` within the module `simple_RBC` with `using ModelBaseEcon`.
+The model itself will be a global variable called `model` within the module `simple_RBC`.
 The command `const` declares global variables that will not change and the function `Model()` constructs a new model object.
 
 ```julia
@@ -178,7 +173,9 @@ module simple_RBC
 end # module
 ```
 
-The model object can hold three sets of parameters: flags, options and model parameters. Flags and options can be adjusted from the model file itself after the constant declaration. Typically, this is done in the model file before calling [`@initialize`](@ref).
+#### Flags and Options
+
+The model object has flags and options. 
 
 Flags are (usually boolean) values which characterize the type of model we have.
 For example, we can specify that the model is stationary by setting the flag `ssZeroSlope` to `true`.
@@ -186,8 +183,12 @@ For example, we can specify that the model is stationary by setting the flag `ss
 ```julia
 model.flags.ssZeroSlope = true
 ```
- 
-Options are values that adjust the operations of the algorithms.
+Once we call [`@initialize`](@ref) at the end of the model file, the flags
+must not be changed after that.
+
+Options are values that adjust the operations of the algorithms. They can be assigned in the 
+model file as well, but they can also be changed at any time after that.
+
 We can preset model options with the function [`setoption!`](@ref).
 Below, we set the desired accuracy with `tol` and we set `maxiter` for the maximum number of
 iterations for the iterative solvers. Auxiliary variables will not be created and substituted to help the solver (`substitutions`). We will opt for QR factorization, which is slower but more robust than LU factorization. Finally, we will set `verbose` to `true` to provide more information from the commands.
@@ -204,12 +205,19 @@ end # options
 
 Many functions in `StateSpaceEcon` have optional arguments of the same name as a
 model option. When the argument is not explicitly given in the function call,
-these functions will use the value from the model option of the same name. \
+these functions will use the value from the model option of the same name.
 
-The rest of the model is specified with macros which do not have to be in any particular order. \
-\
-In addition to falgs and options, the model object also holds model parameters, which are values that appear in the model
-equations. The macro [`@parameters`](@ref) assigns parameter values to the model. A link between parameters can be created with the macro `@link`. Below, the parameter ``\beta`` depends on the parameter ``\rho``.
+#### Model Parameters
+
+The rest of the model file deals with the economics of the model. Different
+elements of the model are declared with macros, which do not have to be in any
+particular order.
+
+The model object holds model parameters,
+which are values that can be used in the model equations. The macro
+[`@parameters`](@ref) declares the parameters and assigns their values. A link between
+parameters can be created with the macro `@link`. Below, the parameter ``\beta``
+depends on the parameter ``\rho``.
 
 ```julia
 @parameters model begin
@@ -223,7 +231,24 @@ equations. The macro [`@parameters`](@ref) assigns parameter values to the model
 end # parameters
 ```
 
-Similarly, model variables are specified with the macro [`@variables`](@ref). Variables can be declared one line at a time (as with the parameters previously), or over one line by separating them with semicolons `;`. Alternatively, we use the macro [`@logvariables`](@ref) to indicate to the solver the work with the log of the variables. For instance, instead of working with ``C_t``, the solver will work directly with the logarithm as a standalone variable (``logC_t=e^{\log(C_t)}``). This can help the solver to avoid computing the logarithm of a negative value.
+We must not declare new parameters after [`@initialize`](@ref) has been called.
+However, the values of existing parameters can be changed at any time and
+the new values take effect immediately (with some exceptions that we discuss below).
+
+#### Variables
+
+Similarly, model variables are specified with the macro [`@variables`](@ref).
+Variables can be declared one line at a time (as with the parameters
+previously), or over one line by separating them with semicolons `;`. 
+
+In this model all variables are strictly positive. We can take advantage of this
+by declaring the variables with the macro [`@logvariables`](@ref). This
+indicates to the solver to work with the log of the variables. For instance,
+instead of working with ``C_t``, the solver will work directly with the
+logarithm as a standalone variable (``logC_t=\log(C_t)``). The substitution
+``C_t = e^{logC_t}`` is done automatically in all equations. This is completely
+invisible to the user, but it can help the solver to avoid computing the
+logarithm of a negative value.
 
 ```julia
 @logvariables model begin
@@ -231,7 +256,7 @@ Similarly, model variables are specified with the macro [`@variables`](@ref). Va
 end # variables
 ```
 
-The macro [`@shocks`](@ref) declares model shocks.
+Similarly, the macro [`@shocks`](@ref) declares model shocks.
 
 ```julia
 @shocks model begin
@@ -239,7 +264,8 @@ The macro [`@shocks`](@ref) declares model shocks.
 end # shocks
 ```
 
-In this case, a `begin` block is not necessary and the technology shock can be declared in one line.
+In this case, the `begin … end` block is not mandatory and the technology shock
+can be declared in one line.
 
 ```julia
 @shocks model ea
@@ -253,12 +279,22 @@ The macro [`@autoexogenize`](@ref) links a variable with a shock. This can be us
 end # autoexogenize
 ```
 
-The dynamic equations of the model are embedded within the macro [`@equations`](@ref). The variables have to be indexed with `t`. For instance, `K[t-1]` refers to the capital stock on `t-1` and `C[t+1]` refers to the expectation on `t` for consumption on `t+1`, or ``E_t(C_{t+1})``. When variables can be separated by a logarithm, it will help the solver to put the macro `@log` in from of an equation. In this way, the residual will be computed as the difference between the logarithm on the left-hand side and the logarithm on the right-hand side. For instance, the solver will prefer to work with the second equation below, which is linear.
+#### Equations
+
+The dynamic equations of the model are defined with the macro
+[`@equations`](@ref). The variables have to be indexed with `t`. For instance,
+`K[t-1]` refers to the capital stock at the end of `t-1` and `C[t+1]` refers to the
+expectation at `t` for consumption at `t+1`, or ``E_t(C_{t+1})``. When variables
+can be separated by a logarithm, it will help the solver to put the macro `@log`
+in front of an equation. In this way, the residual will be computed as the
+difference between the logarithm of the left-hand side and the logarithm of the
+right-hand side. For instance, the solver will prefer to work with the second
+equation below, because it is linear. 
 
 ```math
 \begin{aligned}
-    \frac{1}{\hat{C}_t} &= \frac{1}{1+\rho} E_t \left(\frac{1}{\hat{C}_{t+1}(1+g)}(r_{t+1}+1-\delta) \right) \\
-    \log{{\hat{C}_t}} &= \log{(1+\rho)} + E_t \left(\log{\hat{C}_{t+1}}\log(1+g)-\log(r_{t+1}+1-\delta) \right)
+    L_t^\gamma &= \frac{w_t}{C_t} \\
+    \gamma\log(L_t) &= \log(w_t) - \log(C_t)
 \end{aligned}
 ```
 
@@ -273,6 +309,8 @@ The dynamic equations of the model are embedded within the macro [`@equations`](
 end # equations
 ```
 
+#### Initialization of the Model
+
 Once the parameters, the variables, the shocks and the equations have been specified, the macro [`@initialize`](@ref) constructs the model within the module `simple_RBC`.
 
 ```julia
@@ -284,19 +322,29 @@ Once the parameters, the variables, the shocks and the equations have been speci
 We load the module that contains the model with `using simple_RBC`; the
 model itself is a global variable called `model` within that module, which we assign to `m` in the `Main` module.
 
-!!! note "Important note"
-    For the `using simple_RBC` command to work, we need the model file [`simple_RBC.jl`](simple_RBC.jl) to be on the search path for modules. We can do this by:
-    1) Pushing the file path to `LOAD_PATH` global variable (which we do below for simplicity);
-    2) Adding the model as a standalone package and installing it as: `using Pkg; Pkg.add("/[path to the package]/simple_RBC")`
-
 ```@repl simple_RBC
 unique!(push!(LOAD_PATH, realpath(".")));
 using simple_RBC
 m = simple_RBC.model
 ```
 
+!!! note "Important note"
+    For the "`using simple_RBC`" command to work, we need the model file
+    [`simple_RBC.jl`](simple_RBC.jl) to be on the search path for modules. We
+    can do this by:
+    * Running the file that contains the model module with
+       `include("/[path to file]/simple_RBC.jl")` (in this case we don't need
+       `using simple_RBC`);
+    * Adding the file path to
+       [`LOAD_PATH`](https://docs.julialang.org/en/v1/base/constants/#Base.LOAD_PATH)
+       global variable (which we did above);
+    * Putting the model in its own standalone package and adding it to the
+       current Julia environment with
+       `using Pkg; Pkg.add("/[path to the package]/simple_RBC")`.
+
 ### Examining the model
 
+If the model has more than 20 equations the display gets truncated.
 We can see the entire model with `fullprint`.
 ```@repl simple_RBC
 fullprint(m)
@@ -320,7 +368,7 @@ equations(m)
 ### Setting the model parameters
 
 We must not change any part of the model in the active Julia session except for
-the model parameters and steady state constraints if any (see the [Smets and Wouters (2007)](https://bankofcanada.github.io/DocsEcon.jl/dev/Tutorials/US_SW07/main/) tutorial). If we want to add variables, shocks, or equations, we
+the values of the model parameters and steady state constraints if any (see the [Smets and Wouters (2007)](https://bankofcanada.github.io/DocsEcon.jl/dev/Tutorials/US_SW07/main/) tutorial). If we want to add variables, shocks, or equations, we
 must do so in the model module file and restart a new Julia session to load the new model.
 
 When it comes to the model parameters, we can access them by their names from
@@ -353,9 +401,10 @@ update_links!(m)
 ```
 
 !!! note "Important note"
-    Links will not be automatically updated if:
-    * Links contain a reference outside the model parameters, such as the steady state or a model in a parent module
+    When do we need to call `update_links!`? Links will not be automatically updated if:
+    * Links contain a reference outside the model parameters, such as a global variable, the steady state or another model object;
     * A parameter is not a number, such as if an element of a parameter vector is updated.
+
 ## Part 3: The steady state solution
 
 The steady state is a special solution of the dynamic system that remains
@@ -399,7 +448,10 @@ clear_sstate!(m)
 sssolve!(m);
 ```
 
-The Newton-Raphson solution algorithm used by default has failed to converge. Instead, the `:auto` method starts with the Levenberg-Marquardt algorithm and automatically switches to Newton-Raphson when it starts to converge.
+Sometimes the Newton-Raphson solution algorithm, which is used by default
+because it is the fastest, fails to converge. If this happens, we can use
+`method=:auto`, which starts with the Levenberg-Marquardt algorithm and
+automatically switches to Newton-Raphson when it starts to converge.
 
 ```@repl simple_RBC
 clear_sstate!(m)
@@ -523,8 +575,9 @@ the exogenous data array because those values would be ignored.
     non-zero slope, or the steady state has zero slope but the level is not
     unique, we should use `fctype=fcslope`.
 
-If the steady state is not solved or if we prefer not to depend on it, we can use `fctype=fcnatural`.
-The final conditions will be constructed assuming that the last simulation period reflects the first difference of the steady state.
+If the steady state is not solved, or if we prefer not to depend on it, we can use `fctype=fcnatural`.
+The final conditions will be constructed assuming that in the last two periods of the simulation the 
+solution grows at the same rate, i.e., it has settled into its balanced growth.
 For a stationary model, the simulation needs to be long enough so that variables do not change anymore.
 In a model where the steady state has non-zero slope, non-stationary variables have to grow at a stable pace by the end of the simulation.
 
@@ -533,7 +586,7 @@ We can set the default option for the simple RBC model outside the model dedicat
 ```@repl simple_RBC
 m.options.fctype = fcnatural
 ```
-Otherwise, this option can be set within the model model but the StateSpaceEcon package must be installed within the module. For instance:
+Otherwise, this option can be set within the model module but the StateSpaceEcon package must be loaded within the module in addition to ModelBaseEcon. For instance:
 
 ``` julia
 module simple_RBC
@@ -547,7 +600,7 @@ module simple_RBC
         o.substitutions = false
         o.factorization = :qr
         o.verbose = true
-        o.fctype = fcnatural
+        o.fctype = fcnatural   # requires StateSpaceEcon
     end # options
     # Rest of the model...
 end
@@ -566,7 +619,7 @@ ss = simulate(m, p, exog);
 
 The simulated data, `ss`, should equal (up to the accuracy of the solution) the
 steady state data. Similar to [`steadystatedata`](@ref), we can use
-[`zerodata`](@ref) to create a data set containing with zeros to work in the deviation from the steady state
+[`zerodata`](@ref) to create a data set containing zeros to work in the deviation from the steady state
 solution.
 
 ```@repl simple_RBC
@@ -680,7 +733,7 @@ technology shock actually hit.
 Now let's pretend that the simulated values for `A` are historical data and that we do
 not know the magnitude of the shock `ea`. We can treat the observed (simulated)
 values of the variable `A` as known by making them exogenous. At the same time we
-will make the shock endogenous, so that we can solve for their values during
+will make the shock endogenous, so that we can solve for its values during
 the simulation.
 
 We use [`exogenize!`](@ref) and [`endogenize!`](@ref) to set up a plan in which
@@ -692,7 +745,7 @@ exogenize!(p, observed, shk_rng);
 p
 ```
 
-Another possibility is to use the `autoexogenize` command, which will use the default pairing provided in the model under `@autoexogenize`.
+Another possibility is to use the `autoexogenize` command, which will use the default pairing provided in the model definition under `@autoexogenize`.
 
 ```@repl simple_RBC
 autoexogenize!(p, m, shk_rng)

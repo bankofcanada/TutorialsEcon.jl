@@ -61,7 +61,6 @@ subtract two [`Duration`](@ref)s, but we're not allowed to add two
 ```@repl tse
 a = 2001Q2 - 2000Q1  # the result is a Duration{Quarterly}
 b = 2001Q2 + 2000Q1  # doesn't make sense!
-
 2021Q3 + a  # same difference
 ```
 
@@ -150,7 +149,7 @@ the article on
 in the Julia manual for details.
 
 Type [`TSeries`](@ref) is also a generic data type. It depends on two
-type-paremeters: its frequency and the data type of its elements.
+type-parameters: its frequency and the data type of its elements.
 
 ### Creation of `TSeries`
 
@@ -304,7 +303,7 @@ t[end-2:end] .= 42
 t
 ```
 The same way we can reset the entire [`TSeries`](@ref) to a constant using `.=`
-without specifying the range. This would update the exising [`TSeries`](@ref) in
+without specifying the range. This would update the existing [`TSeries`](@ref) in
 place.
 ```@repl tse
 t .= pi
@@ -444,7 +443,7 @@ form of `date => value`. In this case the resulting [`TSeries`](@ref) will have
 the given value at the given date.
 ```@repl tse
 x2 = undiff(dx, firstdate(x) => first(x))
-@test x ≈ x2
+x ≈ x2
 ```
 
 !!! note "Good to know"
@@ -561,8 +560,8 @@ the result of arithmetic operations. This is the same as with
 with integers. Otherwise, we can also index using [`MIT`](@ref)s (or
 [`MIT`](@ref) ranges) for the row-indexes and
 [`Symbol`](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)s
-(or tuples for
-[`Symbol`](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)s
+(or tuples of
+[`Symbol`](https://docs.julialang.org/en/v1/manual/metaprogramming/#Symbols)s)
 for the column-indexes.
 ```@repl tse
 data[2020Q2, :hex]
@@ -577,7 +576,7 @@ data[2020Q2:2020Q2]  # index with range
 ```
 
 Similarly, we can extract an entire column by its name. The result is a [`TSeries`](@ref).  
-If the intex is a
+If the index is a
 [tuple](https://docs.julialang.org/en/v1/manual/functions/#Tuples) of names,
 then the result is another [`MVTSeries`](@ref) containing only the selected
 columns.
@@ -678,7 +677,7 @@ savefig(ans, "plot-4.png"); nothing; # hide
 
 When working with models, in addition to time series data, we encounter a lot of
 other types of data. For example, parameter and steady state values, simulation
-ranges and dates, etc. The data type [`Workspace`](@ref) is a contrainer that
+ranges and dates, etc. The data type [`Workspace`](@ref) is a container that
 can store all kinds of data. Most operations for
 [dictionaries](https://docs.julialang.org/en/v1/base/collections/#Dictionaries)
 work also for [`Workspace`](@ref)s.
