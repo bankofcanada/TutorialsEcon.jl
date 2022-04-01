@@ -30,7 +30,12 @@ end # options
 end # parameters
 
 @logvariables model begin
-    C; K; L; w; r; A;
+    "Consumption" C
+    "Capital Stock" K
+    "Labour" L
+    "Real Wage" w
+    "Real Rental Rate" r
+    "Technological shock" A
 end # variables
 
 @shocks model ea
