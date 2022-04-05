@@ -287,7 +287,7 @@ ed_r[ini, m.variables] .= longbase[ini, m.variables];
 ed_r[p_r.range, m.shocks] .= sol_0[p_r.range, m.shocks];
 
 # exogenous variables are also taken  from sol_0
-exogenous = Symbol[v for v in m.variables if isexog(v)];
+exogenous = [v for v in m.variables if isexog(v)];
 ed_r[p_r.range, exogenous] .= sol_0[p_r.range, exogenous];
 ```
 
@@ -299,7 +299,7 @@ indeed a solution (we already know that). So, to make things a bit more
 interesting, we add a bit of noise to the true solution.
 
 ```@repl frbus
-endogenous = Symbol[v for v in m.variables if !isexog(v)];
+endogenous = [v for v in m.variables if !isexog(v)];
 ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03.*randn(length(sim), length(endogenous));
 ```
 
