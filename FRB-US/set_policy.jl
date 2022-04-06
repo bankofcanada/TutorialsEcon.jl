@@ -14,13 +14,13 @@ the switch is set over the full range of the data.
 
 The set of valid switch values is in `dmp_switches`.
 """
-function set_mp!(data::SimData, switch, range=mitrange(data))
+function set_mp!(data::SimData, switch, range=rangeof(data))
     sw = Symbol(switch)
     if sw ∉ dmp_switches
         throw(ArgumentError("Not a valid Monetary Policy switch: $switch"))
     end
-    data[range, dmp_switches] = 0.0
-    data[range, sw] = 1.0
+    data[range, dmp_switches] .= 0.0
+    data[range, sw] .= 1.0
     return data
 end
 
@@ -33,13 +33,13 @@ the switch is set over the full range of the data.
 
 The set of valid switch values is in `dfp_switches`.
 """
-function set_fp!(data::SimData, switch, range=mitrange(data))
+function set_fp!(data::SimData, switch, range=rangeof(data))
     sw = Symbol(switch)
     if sw ∉ dfp_switches
         throw(ArgumentError("Not a valid Fiscal Policy switch: $switch"))
     end
-    data[range, dfp_switches] = 0.0
-    data[range, sw] = 1.0
+    data[range, dfp_switches] .= 0.0
+    data[range, sw] .= 1.0
     return data
 end
 

@@ -17,7 +17,7 @@ using Random
 using Distributions
 
 # Fix the random see for reproducibility
-Random.seed!(1234); 
+Random.seed!(1234);
 
 nothing
 ## ##########################################################################
@@ -110,8 +110,8 @@ nothing
 # Update models files if necessary
 models_path = joinpath(mypath, "models")
 
-if !isfile(joinpath(models_path, "FRBUS_VAR.jl")) || 
-    (isfile(joinpath(models_path, "frbus_package.zip")) && 
+if !isfile(joinpath(models_path, "FRBUS_VAR.jl")) ||
+   (isfile(joinpath(models_path, "frbus_package.zip")) &&
     mtime(joinpath(models_path, "FRBUS_VAR.jl")) < mtime(joinpath(models_path, "frbus_package.zip")))
     @info "Updating model files"
     include("update_models.jl")
@@ -204,8 +204,8 @@ dfp_switches
 sim = 2020Q1:2025Q4     # simulation range
 p = Plan(m, sim)        # the plan object
 
-ini = firstdate(p):first(sim) - 1      # range of initial conditions
-fin = last(sim) + 1:lastdate(p)        # range of final conditions
+ini = firstdate(p):first(sim)-1      # range of initial conditions
+fin = last(sim)+1:lastdate(p)        # range of final conditions
 
 # Note that the `fin` range is actually empty. 
 # This is because this model doesn't have any leads.
@@ -254,12 +254,12 @@ ed_0 = copy(ed)
 # it takes much longer because the model is very large and each and every equation
 # gets compiled together with its automatic derivative.
 
-sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
+sol_0 = @time simulate(m, p_0, ed_0; verbose = true, tol = 1e-12);
 
 # The compilation is done once and the compiled code is used in every call after
 # that. So the second call to `simulate` is much, much faster.
 
-sol_0 = @time simulate(m, ed_0, p_0; verbose=true, tol=1e-12);
+sol_0 = @time simulate(m, p_0, ed_0; verbose = true, tol = 1e-12);
 
 ## ##########################################################################
 # ## Recover the Baseline Case
@@ -275,14 +275,14 @@ p_r = Plan(m, sim);
 ed_r = zerodata(m, p_r);
 
 # initial conditions for the variables are taken from longbase
-ed_r[ini, m.variables] = longbase[ini, m.variables];
+ed_r[ini, m.variables] .= longbase[ini, m.variables];
 
 # shocks are taken from from sol_0
-ed_r[p_r.range, m.shocks] = sol_0[p_r.range, m.shocks];
+ed_r[p_r.range, m.shocks] .= sol_0[p_r.range, m.shocks];
 
 # exogenous variables are also taken  from sol_0
-exogenous = m.variables[isexog.(m.variables)];
-ed_r[p_r.range, exogenous] = sol_0[p_r.range, exogenous];
+exogenous = [v for v in m.variables if isexog(v)];
+ed_r[p_r.range, exogenous] .= sol_0[p_r.range, exogenous];
 
 # Now, the only thing left is to set the initial guess for the endogenous
 # variables. If we leave it at 0, that would be an initial guess too far from the
@@ -291,8 +291,8 @@ ed_r[p_r.range, exogenous] = sol_0[p_r.range, exogenous];
 # indeed a solution (we already know that). So, to make things a bit more
 # interesting, we add a bit of noise to the true solution.
 
-endogenous = m.variables[.!isexog.(m.variables)];
-ed_r[sim, endogenous] = longbase[sim, endogenous] .+ 0.03 .* randn(length(sim), length(endogenous));
+endogenous = [v for v in m.variables if !isexog(v)];
+ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03 .* randn(length(sim), length(endogenous));
 
 # Once again we have to set the monetary policy and the fiscal policy rules, as
 # well as the values of some of the other switches.
@@ -306,7 +306,7 @@ set_fp!(ed_r, :dfpsrp);
 # And finally we can run the simulation and check to make sure that indeed the
 # recovered simulation matches the base case.
 
-sol_r = @time simulate(m, ed_r, p_r, verbose=true, tol=1e-9);
+sol_r = @time simulate(m, p_r, ed_r; verbose = true, tol = 1e-9);
 @test sol_r ≈ sol_0
 
 ## ##########################################################################
@@ -323,19 +323,19 @@ p_1 = Plan(m, sim);
 ed_1 = copy(sol_0);
 
 ed_1.rffintay_a[first(sim)] += 1;
-sol_1 = @time simulate(m, ed_1, p_1;  verbose=true, tol=1e-9);
+sol_1 = @time simulate(m, p_1, ed_1; verbose = true, tol = 1e-9);
 
 
 ## ##########################################################################
 # Finally, we can plot the impulse response function to see what we've done.
 # compute the differences between the base case and the shocked simulation.
 dd = hcat(SimData(p.range),
-    d_rff=sol_1.rff - sol_0.rff,
-    d_rg10=sol_1.rg10 - sol_0.rg10,
-    d_lur=sol_1.lur - sol_0.lur,
-    d_pic4=sol_1.pic4 - sol_0.pic4,
+    d_rff = sol_1.rff - sol_0.rff,
+    d_rg10 = sol_1.rg10 - sol_0.rg10,
+    d_lur = sol_1.lur - sol_0.lur,
+    d_pic4 = sol_1.pic4 - sol_0.pic4,
 );
 
 # produce the plot
-plot(dd[sim], vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
-     legend=false, size=(600, 400))
+plot(dd[sim], vars = (:d_rff, :d_rg10, :d_lur, :d_pic4),
+    legend = false, size = (600, 400))
