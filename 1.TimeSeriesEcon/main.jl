@@ -38,7 +38,7 @@ typeof(2021M5 - 2020M3)
 # subtract two `Duration`s, but we're not allowed to add two
 # `MIT`s, only subtract them.
 a = 2001Q2 - 2000Q1  # the result is a Duration{Quarterly}
-b = 2001Q2 + 2000Q1  # doesn't make sense!
+# b = 2001Q2 + 2000Q1  # doesn't make sense!
 2021Q3 + a  # same difference
 
 # When we have an `MIT` plus or minus a plain `Integer`, the latter is
@@ -48,11 +48,11 @@ b = 2001Q2 + 2000Q1  # doesn't make sense!
 2000Q1 + 6 # same as above
 
 # We're not allowed to mix frequencies.
-2000Q1 + Duration{Monthly}(6)
+# 2000Q1 + Duration{Monthly}(6)
 
 # Other arithmetic operations involving `MIT`s and `Duration`s,
 # either with each other or with `Integer`s are not allowed.
-2000Q1 * 5
+# 2000Q1 * 5
 
 ### Other Operations
 # The function `frequencyof` returns the frequency type of its argument.
@@ -192,8 +192,8 @@ t[2:4]
 
 # If we attempt to read outside the stored range, we would get a `BoundsError`,
 # which is the same for `Vector`s.
-t[1999Q1]
-t[2001Q1:2001Q3]
+# t[1999Q1]             # BoundsError
+# t[2001Q1:2001Q3]      # BoundsError
 
 # When specifying a range, we can use `begin` and `end` inside the `[]`. This
 # works exactly the same way for `TSeries` as it does for the built-in
@@ -249,7 +249,7 @@ t
 # This only works with `MIT` indexing. If an integer index is out of
 # bounds, the attempted assignment will result in the usual `BoundsError`, which
 # is what we would get with a `Vector`.
-t[15] = 3.5   # results in an error
+# t[15] = 3.5   # results in a BoundsError
 
 # The vectorized "dot" assignment allows us to copy values from another
 # `TSeries`. In this case, the specified range on the left of `.=` applies

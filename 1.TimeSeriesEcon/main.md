@@ -570,7 +570,7 @@ data[2020Q2, :hex]
 An entire row can be accessed with a single [`MIT`](@ref) index. 
 The result of such indexing is a regular `Vector`.  In order to extract 
 an [`MVTSeries`](@ref) the index must be a unit range of [`MIT`](@ref).
-```@repl
+```@repl tse
 data[2020Q2]
 data[2020Q2:2020Q2]  # index with range
 ```
@@ -774,7 +774,7 @@ MVTSeries(; x1, x2, x3, overlay = overlay(x1, x2, x3))
 ```
 We can force the output to have a specific range by putting that range as the
 first argument of [`overlay`](@ref)
-```@repl
+```@repl tse
 overlay(2020Q1:2020Q4, x1, x2, x3)
 ```
 
