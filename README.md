@@ -24,6 +24,7 @@ in addition to other files. The two `main` files contain the same code and
 explanations. If running the tutorial code yourself, you should use the .jl
 file.
 
-* [Smets and Wouters 2007](US_SW07/main.md)
-* [FRB-US with VAR-based Expectations](FRB-US/main.md)
-* [TimeSeriesEcon](TimeSeriesEcon/main.md)
+* [TimeSeriesEcon](1.TimeSeriesEcon/main.md)
+* [Simple RBC](2.simple_RBC/main.md)
+* [Smets and Wouters 2007](3.US_SW07/main.md)
+* [FRB-US with VAR-based Expectations](4.FRB-US/main.md)

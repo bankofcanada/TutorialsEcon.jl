@@ -124,7 +124,7 @@ end
 # load the model by `using` its module. Once loaded, the module contains a
 # variable `model` which represents the model object.
 
-unique!(push!(LOAD_PATH, joinpath(mypath, "models")))
+unique!(push!(LOAD_PATH, models_path))
 using FRBUS_VAR
 m = FRBUS_VAR.model
 
@@ -337,5 +337,7 @@ dd = hcat(SimData(p.range),
 );
 
 # produce the plot
-plot(dd[sim], vars = (:d_rff, :d_rg10, :d_lur, :d_pic4),
-    legend = false, size = (600, 400))
+plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
+    legend=false, size=(900, 600),  linewidth=1.5,
+)
+

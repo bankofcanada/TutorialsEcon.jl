@@ -357,10 +357,11 @@ datasets being plotted (for the legend) in the `names` option.
 
 ```@repl sw07
 plot(ss, irf,
+     trange=sim_rng,
      vars=(:pinfobs, :dy, :labobs, :robs),
-     names=("SS", "IRF"),
+     label=["SS" "IRF"],
      legend=[true false false false],
-     size=(600, 400)
+     size=(900, 600).*0.8,           # hide
     );
 ```
 
@@ -422,11 +423,15 @@ using `plot`.
 observed = (:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs);
 ss = steadystatedata(m, p);
 plot(ss, sim_a, sim_u,
+     trange=sim_rng,
      vars=observed,
-     names=("SS", "Anticipated", "Unanticipated"),
+     label=["SS", "Anticipated", "Unanticipated"],
      legend=[true (false for i = 1:6)...],
-     linewidth=1.5,   # hide
-     size=(900, 600)  # hide
+     linewidth=1.5,
+     size=(900,600),            # hide
+     xrotation = -20,           # hide
+     xtickfonthalign=:right,    # hide
+     xtickfontvalign=:top,      # hide
     );
 ```
 

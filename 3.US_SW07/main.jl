@@ -1,7 +1,5 @@
 
-# VSCode users:
-# Do not run next line of code with Ctrl-Enter!
-# Run next line of code with Alt-Enter (run line), Shift-Enter (run cell), or Ctrl-F5 (run file)
+# path to this file - we use it to find the model file in the same directory.
 mypath = dirname(@__FILE__)
 
 ## ##########################################################################
@@ -17,7 +15,7 @@ using Random
 using Distributions
 
 # Fix the random seed for reproducibility
-Random.seed!(1234); 
+Random.seed!(1234);
 
 nothing
 ## ##########################################################################
@@ -51,7 +49,7 @@ parameters(m)
 # the model parameters and steady state constraints.
 # If we want to add variables, shocks, or equations, we
 # must do so in the model module file and restart Julia to load the new model.
-    
+
 # When it comes to the model parameters, we can access them by their names from
 # the model object using dot notation.
 m.crr # read a parameter value
@@ -234,14 +232,14 @@ exog
 #     The above works because the steady state is stationary, i.e., all slopes
 #     are zero. If we had a model with linear growth steady state, we could do
 #     something like the following (see `@rec`):
-    for var in variables(m)
-        local ss = m.sstate[var]
-        exog[init_rng, var] .= ss.level
-        if ss.slope != 0
-            # recursively update by adding the slope
-            @rec init_rng[2:end] exog[t, var] = exog[t - 1, var] + ss.slope
-        end
-    end
+#     for var in variables(m)
+#         local ss = m.sstate[var]
+#         exog[init_rng, var] .= ss.level
+#         if ss.slope != 0
+#             # recursively update by adding the slope
+#             @rec init_rng[2:end] exog[t, var] = exog[t-1, var] + ss.slope
+#         end
+#     end
 
 #### Final conditions
 
@@ -298,11 +296,12 @@ irf = simulate(m, p, exog, fctype=fcslope);
 # specify the variables we want to plot using `vars` and the names of the
 # datasets being plotted (for the legend) in the `names` option.
 plot(ss, irf,
-     vars=(:pinfobs, :dy, :labobs, :robs),
-     names=("SS", "IRF"),
-     legend=[true false false false],
-     size=(600, 400)
-    );
+    trange=sim_rng,
+    vars=(:pinfobs, :dy, :labobs, :robs),
+    label=["SS"  "IRF"],
+    legend=[true false false false],
+    size=(900, 600).*0.8,           # hide
+)
 
 png_fname = joinpath(mypath, "irf.png")
 rm(png_fname, force=true)
@@ -319,8 +318,8 @@ savefig(png_fname)
 sim_rng = 2000Q1:2049Q4      # simulate 50 years starting 2000
 shk_rng = 2004Q1 .+ (0:7)    # shock 8 quarters starting in 2004
 p = Plan(m, sim_rng)
-init_rng = first(p.range):first(sim_rng) - 1
-final_rng = last(sim_rng) + 1:last(p.range)
+init_rng = first(p.range):first(sim_rng)-1
+final_rng = last(sim_rng)+1:last(p.range)
 exog = zerodata(m, p);
 for v in variables(m)
     exog[init_rng, v] .= m.sstate[v].level
@@ -331,13 +330,13 @@ end
 # We use packages `Distributions` and `Random` to draw the
 # necessary random values.
 
-shk_dist = (ea = Normal(0.0, 0.4618),
-            eb = Normal(0.0, 1.8513),
-            eg = Normal(0.0, 0.6090),
-            eqs = Normal(0.0, 0.6017),
-            em = Normal(0.0, 0.2397),
-            epinf = Normal(0.0, 0.1455),
-            ew = Normal(0.0, 0.2089));
+shk_dist = (ea=Normal(0.0, 0.4618),
+    eb=Normal(0.0, 1.8513),
+    eg=Normal(0.0, 0.6090),
+    eqs=Normal(0.0, 0.6017),
+    em=Normal(0.0, 0.2397),
+    epinf=Normal(0.0, 0.1455),
+    ew=Normal(0.0, 0.2089));
 
 for (shk, dist) in pairs(shk_dist)
     exog[shk_rng, shk] = rand(dist, length(shk_rng))
@@ -356,12 +355,16 @@ sim_u = simulate(m, p, exog; fctype=fcslope, anticipate=false);
 observed = (:dy, :dc, :dinve, :labobs, :pinfobs, :dw, :robs);
 ss = steadystatedata(m, p);
 plot(ss, sim_a, sim_u,
-     vars=observed,
-     names=("SS", "Anticipated", "Unanticipated"),
-     legend=[true (false for i = 1:6)...],
-     linewidth=1.5,
-     size=(900, 600)
-    );
+    trange=sim_rng,
+    vars=observed,
+    label=["SS", "Anticipated", "Unanticipated"],
+    legend=[true (false for i = 1:6)...],
+    linewidth=1.5,
+    size=(900,600),            # hide
+    xrotation = -20,           # hide
+    xtickfonthalign=:right,    # hide
+    xtickfontvalign=:top,      # hide
+)
 
 png_fname = joinpath(mypath, "stoch_shk.png")
 rm(png_fname, force=true)

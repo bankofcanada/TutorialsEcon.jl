@@ -157,6 +157,9 @@ A docstring can be added to the model to provide more details:
     Model available at: https://archives.dynare.org/DynareShanghai2013/order1.pdf
     Presentation: Villemot, S., 2013. First order approximation of stochastic models. Shanghai Dynare Workshop.
     """
+    module simple_RBC
+        ...
+    end
 ```
 
 Then, the module is created with the same name as the model and the associated file name.
@@ -213,11 +216,11 @@ The rest of the model file deals with the economics of the model. Different
 elements of the model are declared with macros, which do not have to be in any
 particular order.
 
-The model object holds model parameters,
-which are values that can be used in the model equations. The macro
-[`@parameters`](@ref) declares the parameters and assigns their values. A link between
-parameters can be created with the macro `@link`. Below, the parameter ``\beta``
-depends on the parameter ``\rho``.
+The model object holds model parameters, which are values that can be used in
+the model equations. The macro [`@parameters`](@ref) declares the parameters and
+assigns their values. A link between parameters can be created with the macro
+[`@link`](@ref). Below, the parameter ``\beta`` depends on the parameter
+``\rho``.
 
 ```julia
 @parameters model begin
@@ -350,7 +353,7 @@ m = simple_RBC.model
 ### Examining the model
 
 If the model has more than 20 equations the display gets truncated.
-We can see the entire model with `fullprint`.
+We can see the entire model with [`fullprint`](@ref).
 ```@repl simple_RBC
 fullprint(m)
 ```
@@ -406,7 +409,7 @@ update_links!(m)
 ```
 
 !!! note "Important note"
-    When do we need to call `update_links!`? Links will not be automatically updated if:
+    When do we need to call [`update_links!`](@ref)? Links will not be automatically updated if:
     * Links contain a reference outside the model parameters, such as a global variable, the steady state or another model object;
     * A parameter is not a number, such as if an element of a parameter vector is updated.
 
@@ -446,7 +449,8 @@ pre-solve pass of the steady state solver. The initial guess can be given with
 the `lvl` and `slp` arguments; if not provided, an initial guess is chosen
 automatically.
 
-Once that's done, we call [`sssolve!`](@ref) to find the steady state. We can see below that `sssolve!` cannot find a steady state solution.
+Once that's done, we call [`sssolve!`](@ref) to find the steady state. We can
+see below that [`sssolve!`](@ref) cannot find a steady state solution.
 
 ```@repl simple_RBC
 clear_sstate!(m)
@@ -463,9 +467,10 @@ clear_sstate!(m)
 sssolve!(m; method = :auto)
 ```
 
-The function `sssolve!` returns a `Vector{Float64}` containing the steady state solution, and
-it also writes that solution into the model object. The vector is of length
-`2*nvariables(m)` and contains the level and the slope for each variable.
+The function [`sssolve!`](@ref) returns a `Vector{Float64}` containing the
+steady state solution, and it also writes that solution into the model object.
+The vector is of length `2*nvariables(m)` and contains the level and the slope
+for each variable.
 
 If in doubt, we can use [`check_sstate`](@ref) to make sure the steady state
 solution stored in the model object indeed satisfies the steady state system of
@@ -659,13 +664,14 @@ specify the variables we want to plot using `vars` and the names of the
 datasets being plotted (for the legend) in the `labels` option.
 
 ```@repl simple_RBC
-gr(display_type=:inline) # hide
-model_vars = [var.name for var in m.variables]; # model variables are taken from the model
 plot(ss, irf,
-     vars=model_vars,
+     vars=m.variables, # variables to plot are taken from the model
      legend= :none,
-     size=(600, 400),
-     xrotation = 45, margin = 12Plots.mm,
+     linewidth=1.5,   
+     size=(900,600),            # hide
+     xrotation = -20,           # hide
+     xtickfonthalign=:right,    # hide
+     xtickfontvalign=:top,      # hide
     );
 ```
 
@@ -714,12 +720,14 @@ observed = collect(keys(m.autoexogenize)); # the observed variable is from the a
 ss = steadystatedata(m, p);
 gr(display_type=:inline) # hide
 plot(ss, sim_a, sim_u,
-     vars=model_vars,
+     vars=m.variables,
      labels=("SS", "Anticipated", "Unanticipated"),
-     legend=[true (false for i = 2:length(model_vars))...],
-     linewidth=1.5,   # hide
-     size=(900, 600),  # hide
-     xrotation = 90, margin = 12Plots.mm,
+     legend=[true (false for i = 2:length(m.variables))...],
+     linewidth=1.5,   
+     size=(900,600),            # hide
+     xrotation = -20,           # hide
+     xtickfonthalign=:right,    # hide
+     xtickfontvalign=:top,      # hide
     );
 ```
 
@@ -733,7 +741,7 @@ We see that when the shock is anticipated, the variables start to react to
 them right away; in the unanticipated case, there is no movement until the
 technology shock actually hit.
 
-## Part 5: Backing out historical shocks
+## Part 6: Backing out historical shocks
 
 Now let's pretend that the simulated values for `A` are historical data and that we do
 not know the magnitude of the shock `ea`. We can treat the observed (simulated)
@@ -750,7 +758,9 @@ exogenize!(p, observed, shk_rng);
 p
 ```
 
-Another possibility is to use the `autoexogenize` command, which will use the default pairing provided in the model definition under `@autoexogenize`.
+Another possibility is to use the [`autoexogenize!`](@ref) command, which will
+use the default pairing provided in the model definition under
+[`@autoexogenize`](@ref).
 
 ```@repl simple_RBC
 autoexogenize!(p, m, shk_rng)

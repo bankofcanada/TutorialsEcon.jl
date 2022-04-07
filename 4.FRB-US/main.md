@@ -347,7 +347,7 @@ Finally, we can plot the impulse response function to see what we've done.
 
 ```@repl frbus
 # compute the differences between the base case and the shocked simulation.
-dd = hcat(SimData(p.range),
+dd = MVTSeries(p.range; 
     d_rff=sol_1.rff - sol_0.rff,
     d_rg10=sol_1.rg10 - sol_0.rg10,
     d_lur=sol_1.lur - sol_0.lur,
@@ -355,8 +355,8 @@ dd = hcat(SimData(p.range),
 );
 
 # produce the plot
-plot(dd[sim], vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
-     legend=false, size=(600, 400));
+plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
+    legend=false, size=(900, 600),  linewidth=1.5);
 ```
 
 ```@setup frbus
