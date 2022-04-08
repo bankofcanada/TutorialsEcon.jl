@@ -329,7 +329,7 @@ sol_1 = @time simulate(m, p_1, ed_1; verbose = true, tol = 1e-9);
 ## ##########################################################################
 # Finally, we can plot the impulse response function to see what we've done.
 # compute the differences between the base case and the shocked simulation.
-dd = hcat(SimData(p.range),
+dd = MVTSeries(p.range,
     d_rff = sol_1.rff - sol_0.rff,
     d_rg10 = sol_1.rg10 - sol_0.rg10,
     d_lur = sol_1.lur - sol_0.lur,
