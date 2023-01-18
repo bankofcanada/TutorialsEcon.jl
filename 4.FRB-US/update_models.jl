@@ -182,7 +182,7 @@ end
 
 log_vars = split("""ebfi ebfin ec ecd ech ecnia ecnian eco egfe egfen egfet egfl egfln egflt
 egse egsen egset egsl egsln egslt eh ehn em emn emo emon emp empn ex exn fgdp fgdpt fnicn
-fniln fpc fpx ftcin fynicn fyniln fynin gfdbtn gfdbtnp gfexpn gfintn gfrecn gtn gtr jccan
+fniln fpc fpx ftcin fynicn fyniln gfdbtn gfdbtnp gfexpn gfintn gfrecn gtn gtr jccan
 jkcd kbfi kcd kh ki ks pcnia pcpi pcpix pcxfe pgdp pgfl pgsl phouse pl pmo pmp poil pxb
 pxnc pxp qebfi qec qecd qeco qeh qpcnia qpl qpxb qpxnc qpxp qynidn tcin tpn wpo wpon wpsn
 xb xbn xbo xbt xfs xfsn xgdi xgdin xgdo xgdp xgdpn xgdpt xgdptn xp xpn ydn yh yhibn yhl
