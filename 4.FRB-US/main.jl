@@ -305,7 +305,7 @@ endogenous = [v for v in m.variables if !isexog(v)];
 ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03 .* randn(length(sim), length(endogenous));
 
 # Once again we have to set the monetary policy and the fiscal policy rules, as
-# well as the values of some of the other switches. 
+# well as the values of some of the other switches.
 
 set_mp!(ed_r, :dmpintay);
 ed_r.dmptrsh .= 0.0;
