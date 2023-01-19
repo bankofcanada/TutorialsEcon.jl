@@ -211,7 +211,6 @@ end
 # variables that are declared either in an `@exogenous` block or with the `@exog`
 # declaration within an `@variables` block in the model file.
 
-# sim = 2020Q1:2025Q4     # simulation range
 sim = 2022Q1:2027Q4     # simulation range
 p = Plan(m, sim)        # the plan object
 
