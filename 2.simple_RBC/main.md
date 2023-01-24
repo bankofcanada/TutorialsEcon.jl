@@ -811,6 +811,85 @@ data must match over the entire simulation range.
 @test sim_u ≈ back_u
 ```
 
+## Part 7: Model variants and solvers
+
+The model can be linearized around its steady state.
+* The command [`linearize!`](@ref) initializes the data for the new variant `:linearize` within the model and sets `m.options.variant` to `:linearize`.
+* The command [`solve!`] fills the data of the variant `:linearize` with the first-order approximation of the model around its steady state.
+
+```@repl simple_RBC
+m.options.variant
+linearize!(m)
+m.options.variant
+solve!(m, solver = :firstorder)
+m.options.variant
+```
+
+Instead of linearizing all the equations, equations can be linearized selectively by creating the variant `:selective_linearize` with the command [`selective_linearize!`](@ref).
+
+```@repl simple_RBC
+selective_linearize!(m)
+m.options.variant
+```
+
+Equations to linearize needs to be preceded with the macro `@lin`. For instance:
+
+```@julia
+@lin K[t] + C[t] = A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (1-α) + (1-δ) * (K[t-1]/(1+g))
+```
+
+The default model variant `m.` can be changed directly.
+
+```@repl simple_RBC
+m.options.variant = :default
+```
+
+In total, there are three variants:
+1) `:default`: the model as given through its equations
+2) `:linearize`: first-order approximation around its steady state
+3) `:selective_linearize`: first-order approximation around its steady state for the equations preceded by the macro `@lin`.
+
+In addition to the variant, the command [`simulate`](@ref) requires a solver. `StateSpaceEcon.jl` currently has two solvers:
+1) The solver `:stackedtime` is used by default for the variants `default` and `:selective_linearize`.
+2) The solver `:firstorder` is used by default for the variant `:linearize`.
+
+To get the default solver, simply omit the `solver=` argument of the command [`simulate`](@ref).
+
+For demonstration purposes, we compare the three models for an unanticipated shock `ea` for the first four quarters by `0.1`.
+
+```@repl simple_RBC
+p = Plan(m, sim_rng)
+exog = zerodata(m,p);
+exog[sim_rng[1:4], :ea] .= 0.1;
+exog1 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :default, solver = :stackedtime);
+exog2 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :selective_linearize, solver = :stackedtime);
+exog3 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :linearize, solver = :firstorder);
+
+gr(display_type=:inline) # hide
+plot(exog1, exog2, exog3,
+     vars=m.variables,
+     labels=("Stacked-Time", "Selective linearization", "Linearized"),
+     legend=[true (false for i = 2:length(m.variables))...],
+     linewidth=1.5,   
+     size=(900,600),            # hide
+     xrotation = -20,           # hide
+     xtickfonthalign=:right,    # hide
+     xtickfontvalign=:top,      # hide
+    );
+```
+
+```@setup simple_RBC
+savefig("irf_variants.png")
+```
+
+[![Impulse Response Graph](irf_variants.png)](irf_variants.png)
+
+!!! warning "The first-order approximation"
+
+    For anticipated shocks, the `:firstorder` solver is only available for empty plans.
+    Empty plans have all the shocks as exogenous and all the variables as endogenous.
+    For anticipated shocks with non-empty plans, use the `:stackedtime` solver.
+
 ## Appendix
 
 ### References
