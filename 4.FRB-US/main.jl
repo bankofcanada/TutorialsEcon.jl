@@ -156,15 +156,13 @@ m.equations[2]
 ## ##########################################################################
 # ## Load the Longbase Data
 
-# Unfortunately the `longbase` data is available only in EViews format, which
-# cannot be read automatically by open source software (at least to our
-# knowledge). For convenience, here we have included the version of `longbase` from
-# 23-07-2020 in a csv format and a function that loads that data. The function is
-# defined in file load_longbase.jl. Note that this is not a
-# module, so we load it by calling `include()`, not `using`.
+# Unfortunately the `longbase` data is loaded from the LONGBASE.TXT file provided in the FRB/US data package.
+# The file is read and parsed via the function defined in load_longbase.jl. Note that this is not a module, 
+# so we load it by calling `include()`, not `using`. We have saved a copy of this file as of 2022-11-29, named
+# `longbase_2022-11-29.csv`
 
 include("load_longbase.jl")
-longbase = load_longbase("longbase_23072020.csv")
+longbase = load_longbase("longbase_2022-11-29.csv")
 
 ## ##########################################################################
 # ## Load `set_policy.jl`
@@ -183,11 +181,23 @@ include("set_policy.jl")
 # these are the mp switches
 dmp_switches
 
+#  these are their descriptions
+for s in dmp_switches
+    v = filter(x -> x.name == s, m.variables)[1]
+    println("$s : \t$(v.doc)")
+end
+
 # and the docs for setting fiscal policy
 @doc set_fp!
 
 # these are the fp switches
 dfp_switches
+
+# these are their descriptions
+for s in dfp_switches
+    v = filter(x -> x.name == s, m.variables)[1]
+    println("$s : \t$(v.doc)")
+end
 
 
 ## ##########################################################################
@@ -201,7 +211,7 @@ dfp_switches
 # variables that are declared either in an `@exogenous` block or with the `@exog`
 # declaration within an `@variables` block in the model file.
 
-sim = 2020Q1:2025Q4     # simulation range
+sim = 2022Q1:2027Q4     # simulation range
 p = Plan(m, sim)        # the plan object
 
 ini = firstdate(p):first(sim)-1      # range of initial conditions
@@ -223,7 +233,7 @@ ed .= longbase[p.range];
 
 # Next we set the monetary policy, the fiscal policy and a few other switches.
 
-# set monetary policy
+# set monetary policy (Inertial Taylor Rule)
 set_mp!(ed, :dmpintay);
 
 # turn off zero bound and policy thresholds;
@@ -232,7 +242,7 @@ ed.dmptrsh .= 0.0;
 ed.rffmin .= -9999;
 ed.drstar .= 0.0;
 
-# set fiscal policy
+# set fiscal policy (Surplus Ratio Stabilization)
 set_fp!(ed, :dfpsrp);
 
 ## ##########################################################################
@@ -337,7 +347,13 @@ dd = MVTSeries(p.range,
 );
 
 # produce the plot
-plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
+p = plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
     legend=false, size=(900, 600),  linewidth=1.5,
-)
+    titlefontsize=8
+);
+plot!(p[1,1], title="d_rff: $(m.rff.doc) (s-c)");
+plot!(p[1,2], title="d_rg10: $(m.rg10.doc) (s-c)");
+plot!(p[2,1], title="d_lur: $(m.lur.doc) (s-c)");
+plot!(p[2,2], title="d_pic4: $(m.pic4.doc) (s-c)");
+p
 
