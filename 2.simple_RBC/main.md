@@ -813,45 +813,64 @@ data must match over the entire simulation range.
 
 ## Part 7: Model variants and solvers
 
-The model can be linearized around its steady state.
-* The command [`linearize!`](@ref) initializes the data for the new variant `:linearize` within the model and sets `m.options.variant` to `:linearize`.
-* The command [`solve!`] fills the data of the variant `:linearize` with the first-order approximation of the model around its steady state.
+As of version 0.4 of StateSpaceEcon, there are two keyword arguments that
+control how the model is handled and which solver is used. These are `variant`
+and `solver`. The currently available variants are `:default` (the model is
+taken as given), `:linearize` and `:selective_linearize`. Currently there are
+two solvers available, namely `:stackedtime` (which is the default) and
+`:firstorder`.
+
+In order to use the `:linearize` variant, you must first solve for the steady
+state, as already explained. Once the steady state solution is stored in the
+model instance, you all [`linearize!`](@ref), which creates the linearization of
+the model about its steady state and sets the default variant to `:linearize`.
+
+You can check or change the default variant via `m.variant`.
+
+Once the linearized model is available, you can use either contnue to use the
+stacked time solver or you can start using the first order solver. For this you
+must first call [`solve!`](@ref) with `solver=:firstorder`, after which you can pass
+`solver=:firstorder` to `simulate` (and other functions that use a solver).
 
 ```@repl simple_RBC
-m.options.variant
+m.variant
 linearize!(m)
-m.options.variant
+m.variant
 solve!(m, solver = :firstorder)
-m.options.variant
+m.variant
 ```
 
-Instead of linearizing all the equations, equations can be linearized selectively by creating the variant `:selective_linearize` with the command [`selective_linearize!`](@ref).
+Instead of linearizing all the equations, you can linearize only selected
+equations by creating the variant `:selective_linearize` with the command
+[`selective_linearize!`](@ref). Once again, the steady state solution must e
+available for this call to succeed.
 
 ```@repl simple_RBC
 selective_linearize!(m)
 m.options.variant
 ```
 
-Equations to linearize needs to be preceded with the macro `@lin`. For instance:
+The equation that will be linearized with this call must be specified in the
+model file by marking them with the macro `@lin`. For instance:
 
 ```@julia
 @lin K[t] + C[t] = A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (1-α) + (1-δ) * (K[t-1]/(1+g))
 ```
 
-The default model variant `m.` can be changed directly.
+The model variant can be reset back to the original by assigning it directly.
 
 ```@repl simple_RBC
-m.options.variant = :default
+m.variant = :default
 ```
 
 In total, there are three variants:
 1) `:default`: the model as given through its equations
-2) `:linearize`: first-order approximation around its steady state
-3) `:selective_linearize`: first-order approximation around its steady state for the equations preceded by the macro `@lin`.
+2) `:linearize`: first-order approximation around itssteady state
+3) `:selective_linearize`: first-order approximation around its steady state for the equations preceded by the macro `@lin`..
 
 In addition to the variant, the command [`simulate`](@ref) requires a solver. `StateSpaceEcon.jl` currently has two solvers:
-1) The solver `:stackedtime` is used by default for the variants `default` and `:selective_linearize`.
-2) The solver `:firstorder` is used by default for the variant `:linearize`.
+1) The solver `:stackedtime` can be used with any variant. It is the only solver that can be used with `default` and `:selective_linearize`.
+2) The solver `:firstorder` can only be used for the variant `:linearize`. In fact, when this solver is specified the `variant` is ignored.
 
 To get the default solver, simply omit the `solver=` argument of the command [`simulate`](@ref).
 
