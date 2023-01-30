@@ -42,7 +42,7 @@ export heaviside
     y_frs10 = [0.0, 1.0, 1.0, 0.5, 1.0]
     y_frstar = [0.95, 0.05]
     y_fxgap = [1.290723676327916, -0.4680091148746248, -0.05, 0.03734559019022718]
-    y_gtrd = [0.5593186988558747, -0.0004273177175062162]
+    y_gtrd = [0.862481931486, -0.000176387604876, -0.00143470943]
     y_hgemp = [0.9, 0.1]
     y_hgpkir = [0.9, 0.1]
     y_hks = [0.4543136031, 0.4847950762, 0.0608913208]
@@ -86,12 +86,11 @@ export heaviside
     y_qpxb = [0.0, 1.0]
     y_qpxnc = [2.98507462687, -1.98507462687]
     y_qynidn = [-0.9155533588082586, 0.3548225925232601, 1.0]
-    y_rbbbp = [1.7, -0.100080157808, 0.879075856163]
+    y_rbbbp = [1.972218, -0.189051, 0.848879]
     y_rcar = [2.078274063162198, -1.163656496933583, -0.008285302552441101, 0.6967481719141809, 0.1016693350391095, 0.2015824930467097]
     y_rcgain = [-0.4097125100056558, 0.4243575136593637, 0.2257857751190805, -0.4097125100056558, 0.4243575136593637]
-    y_reqp = [3.754475463004359, 0.5500032808600586, 0.8350648796431113]
+    y_reqp = [2.903727, 0.808086, 0.795819]
     y_rffalt = [0.0551, 1.2, -0.39, 0.6954, -0.5168, 0.3287]
-    y_rffgen = [0.0, 0.0, 0.0, 0.0, 0.0, 0.375, 0.375, 0.375, 0.375, 0.0, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, -0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     y_rffintay = [0.5, 1.0, 0.85]
     y_rfftay = [0.5, 1.0]
     y_rfftlr = [-0.5, 0.375, 1.1]
@@ -106,10 +105,10 @@ export heaviside
     y_rrtr = [0.97, 0.03]
     y_rstar = [0.05]
     y_rtb = [-0.05102548358978556, 0.7997187921520414, 0.1113735515796583, 0.7701225626671688, -0.6812149063988686]
-    y_trci = [0.7737833041435732, 0.001319818994241801]
-    y_trp = [1.0, 0.6596683565031606, 0.2284340573322833, 0.0003914555342895001]
+    y_trci = [0.810247648208, 0.00706626139452]
+    y_trp = [1.0, 0.603942358608, 0.236576213581, 0.000630587773923]
     y_trpt = [0.05, 0.5, -0.1]
-    y_ugfsrp = [0.041681, 0.929774]
+    y_ugfsrp = [0.065666, 0.947688]
     y_uqpct = [0.0]
     y_uxbt = [0.0]
     y_uynicpnr = [-0.07396, 0.779183]
@@ -181,7 +180,7 @@ end
     "Corporate taxes paid to rest of world, current \$" @log ftcin
     "Gross investment income received from the rest of the world, current \$" @log fynicn
     "Gross investment income paid to the rest of the world, current \$" @log fyniln
-    "Net investment income received from the rest of the world, current \$" @log fynin
+    "Net investment income received from the rest of the world, current \$" fynin
     "Federal government debt stock, current \$" @log gfdbtn
     "Federal government debt stock held by the public, current \$" @log gfdbtnp
     "Government payments" @log gfexpn
@@ -408,7 +407,6 @@ end
     "Real expected rate of return on equity, premium component" reqp
     "Federal funds rate" rff
     "Value of eff. federal funds rate given by estimated policy rule" rffalt
-    "Value of eff. federal funds rate given by the generalized reaction function" rffgen
     "Value of eff. federal funds rate given by the inertial Taylor rule" rffintay
     "Federal funds rate" rffrule
     "Value of eff. federal funds rate given by the Taylor rule with output gap" rfftay
@@ -464,7 +462,6 @@ end
     "Monetary policy switch:  Generalized reaction function" dmpgen
     "Monetary policy switch:  inertial taylor rule" dmpintay
     "Monetary policy switch:  exogenous real federal funds rate" dmprr
-    "Stabilization  switch:  0 for standard applications, 1 for stochastic simulations" dmpstb
     "Monetary policy switch:  Taylor's reaction function" dmptay
     "Monetary policy switch:  Taylor's reaction function with unemployment gap" dmptlr
     "Monetary policy threshold switch:  0 for no threshold,  1 for threshold" dmptrsh
@@ -480,8 +477,6 @@ end
     "Depreciation rate, business investment" jrbfi
     "Depreciation rate, consumer durables" jrcd
     "Depreciation rate, housing" jrh
-    "Capital stock - nonresidential structures, 2012\$" kps
-    "Federal Government employment ratio" lefr
     "Emergency unemployment compensation (EUC)" leuc
     "Labor quality, trend level" lqualt
     "Unemployment threshold" lurtrsh
@@ -501,7 +496,6 @@ end
     "Real federal funds rate given by fixed, pre-determined real funds rate path" rrfix
     "Time trend, begins in 1947q1 (0 before)" t47
     "Proportion of investment tax credit deducted from depr. base" tapddp
-    "Investment tax credit rate for equipment" tapdt
     "Present value of depreciation allowances, BFI" tdpv
     "Government corporate income tax rate, trend" trcit
     "Marginal federal corporate income tax rate" trfcim
@@ -509,8 +503,6 @@ end
     "Investment tax credit for business investment" tritc
     "Average tax rate for personal income tax, trend, policy setting" trptx
     "Marginal S&L tax rate on personal property" trspp
-    "Energy share of nominal consumption expenditures" uces
-    "Food share of nominal consumption expenditures" ucfs
     "Trend in ratio of EMON to XGDEN" uemot
     "Multiplicative factor in FCBRN identity" ufcbr
     "Multiplicative factor in FNIRN identity" ufnir
@@ -599,17 +591,17 @@ end
     "Net investment income received from the rest of the world, current \$"
     fynin[t] - fynin_a[t] = fynicn[t] - fyniln[t]
     "Federal government debt stock, current \$"
-    gfdbtn[t] - gfdbtn_a[t] = ugfdbt[t] * (gfdbtn[t - 1] - 0.25 * (gfsrpn[t] - 0.36 * egfen[t]))
+    gfdbtn[t] - gfdbtn_a[t] = ugfdbt[t] * gfdbtnp[t]
     "Federal government debt stock held by the public, current \$"
-    gfdbtnp[t] - gfdbtnp_a[t] = ugfdbtp[t] * gfdbtn[t]
+    gfdbtnp[t] - gfdbtnp_a[t] = ugfdbtp[t] * (gfdbtnp[t - 1] - 0.25 * gfsrpn[t])
     "Government payments"
-    gfexpn[t] - gfexpn_a[t] = egfln[t] + 0.64 * egfen[t] + gtn[t] + gfintn[t]
+    gfexpn[t] - gfexpn_a[t] = egfln[t] + egfen[t] + gtn[t] + gfintn[t]
     "Federal government net interest payments, current \$"
     gfintn[t] - gfintn_a[t] = rgfint[t] * gfdbtn[t - 1]
     "Government receipts and residual"
     gfrecn[t] - gfrecn_a[t] = tpn[t] + tcin[t] + ugfsrp[t] * xgdpn[t]
     "Federal government budget surplus, current \$"
-    gfsrpn[t] - gfsrpn_a[t] = (((((tpn[t] + tcin[t]) - egfln[t]) - 0.64 * egfen[t]) - gtn[t]) - gfintn[t]) + ugfsrp[t] * xgdpn[t]
+    gfsrpn[t] - gfsrpn_a[t] = (((((tpn[t] + tcin[t]) - egfln[t]) - egfen[t]) - gtn[t]) - gfintn[t]) + ugfsrp[t] * xgdpn[t]
     "Growth rate of GDP, cw 2012\$ (annual rate)"
     hggdp[t] - hggdp_a[t] = 400 * @d(log(xgdp[t]), 0, 1)
     "Trend growth rate of XGDP, cw 2012\$ (annual rate)"
@@ -677,11 +669,11 @@ end
     "Desired level of consumption (FRBUS definition)"
     log(qec[t]) - qec_a[t] = y_qec[1] + y_qec[2] * log((zyh[t] - zyht[t]) - zyhp[t]) + y_qec[3] * log(zyht[t]) + (((1 - y_qec[2]) - y_qec[3]) - y_qec[4]) * log(zyhp[t]) + y_qec[4] * log(wpo[t] + wps[t])
     "Target level of consumption of durable goods, trending component"
-    qecd[t] - qecd_a[t] = qec[t] * (jrcd[t] / 4 + hggdpt[t] / 400 + (y_qecd[1] * hgpcdr[t]) / 400) * exp(y_qecd[2] + y_qecd[3] * (log(pcdr[t]) + log(rccd[t])))
+    qecd[t] - qecd_a[t] = qec[t] * (jrcd[t] / 4 + ((hggdpt[t] + hggdpt[t - 1] + hggdpt[t - 2] + hggdpt[t - 3] + hggdpt[t - 4] + hggdpt[t - 5] + hggdpt[t - 6] + hggdpt[t - 7]) / 8) / 400 + (y_qecd[1] * hgpcdr[t]) / 400) * exp(y_qecd[2] + y_qecd[3] * (log(pcdr[t]) + log(rccd[t])))
     "Desired level of consumption of nondurable goods and nonhousing services"
     log(qeco[t]) - qeco_a[t] = (y_qeco[1] + log(qec[t])) - log(pcor[t])
     "Target level of residential investment"
-    qeh[t] - qeh_a[t] = qec[t] * (jrh[t] / 4 + hggdpt[t] / 400) * exp((y_qeh[1] - log((phr[t] * pxp[t]) / pcnia[t])) + y_qeh[2] * log(rcch[t]))
+    qeh[t] - qeh_a[t] = qec[t] * (jrh[t] / 4 + ((hggdpt[t] + hggdpt[t - 1] + hggdpt[t - 2] + hggdpt[t - 3] + hggdpt[t - 4] + hggdpt[t - 5] + hggdpt[t - 6] + hggdpt[t - 7] + hggdpt[t - 8] + hggdpt[t - 9] + hggdpt[t - 10] + hggdpt[t - 11] + hggdpt[t - 12] + hggdpt[t - 13] + hggdpt[t - 14] + hggdpt[t - 15]) / 16) / 400) * exp((y_qeh[1] - log((phr[t] * pxp[t]) / pcnia[t])) + y_qeh[2] * log(rcch[t]))
     "Desired level of civilian labor force"
     qlf[t] - qlf_a[t] = qlfpr[t] * n16[t]
     "Trend labor force participation rate"
@@ -939,13 +931,13 @@ end
     "Equilibrium real short-term interest rate used in foreign Taylor rule"
     frstar[t] - frstar_a[t] = y_frstar[1] * frstar[t - 1] + y_frstar[2] * (frs10[t] - (fpi10[t] + fpi10[t - 1] + fpi10[t - 2] + fpi10[t - 3]) / 4)
     "Foreign output gap (world, bilateral export weights)"
-    fxgap[t] - fxgap_a[t] = +(y_fxgap[1]) * fxgap[t - 1] + y_fxgap[2] * fxgap[t - 2] + y_fxgap[3] * (@movav(frs10[t - 1] - (fpi10[t - 1] + fpi10[t - 2] + fpi10[t - 3] + fpi10[t - 4]) / 4, 3) - frstar[t]) + y_fxgap[4] * xgap2[t - 1]
+    fxgap[t] - fxgap_a[t] = +(y_fxgap[1]) * fxgap[t - 1] + y_fxgap[2] * fxgap[t - 2] + y_fxgap[3] * ((((((frs10[t - 1] - (fpi10[t - 1] + fpi10[t - 2] + fpi10[t - 3] + fpi10[t - 4]) / 4) + frs10[t - 2]) - (fpi10[t - 2] + fpi10[t - 3] + fpi10[t - 4] + fpi10[t - 5]) / 4) + frs10[t - 3]) - (fpi10[t - 3] + fpi10[t - 4] + fpi10[t - 5] + fpi10[t - 6]) / 4) / 3 - frstar[t]) + y_fxgap[4] * xgap2[t - 1]
     "Federal government net transfer payments, current \$"
     gtn[t] - gtn_a[t] = 0.01 * pgdp[t] * gtr[t]
     "Government net transfer payments, deflated by PGDP"
     gtr[t] - gtr_a[t] = (gtrd[t] + gtrt[t]) * xgdpt[t]
     "Deviation of ratio of government transfers to GDP from trend ratio"
-    gtrd[t] - gtrd_a[t] = y_gtrd[1] * gtrd[t - 1] + y_gtrd[2] * xgap2[t]
+    gtrd[t] - gtrd_a[t] = y_gtrd[2] * xgap2[t] + (y_gtrd[3] * (xgap2[t - 1] + xgap2[t - 2] + xgap2[t - 3] + xgap2[t - 4])) / 4 + y_gtrd[1] * ((gtrd[t - 1] - y_gtrd[2] * xgap2[t - 1]) - (y_gtrd[3] * (xgap2[t - 2] + xgap2[t - 3] + xgap2[t - 4] + xgap2[t - 5])) / 4)
     "Petroleum imports, cw 2012\$, trend growth rate"
     hgemp[t] - hgemp_a[t] = y_hgemp[1] * hgemp[t - 1] + y_hgemp[2] * 400 * log(emp[t] / emp[t - 1])
     "Trend growth rate of PKIR"
@@ -1048,12 +1040,10 @@ end
     rff[t] - rff_a[t] = (1 - dmptrsh[t]) * max(rffrule[t], rffmin[t]) + dmptrsh[t] * max(dmptr[t - 1] * rffrule[t] + (1 - dmptr[t - 1]) * rffmin[t], rffmin[t])
     "Value of eff. federal funds rate given by estimated policy rule"
     rffalt[t] - rffalt_a[t] = y_rffalt[1] + y_rffalt[2] * rff[t - 1] + y_rffalt[3] * rff[t - 2] + y_rffalt[4] * xgap2[t] + y_rffalt[5] * xgap2[t - 1] + y_rffalt[6] * ((picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4)
-    "Value of eff. federal funds rate given by the generalized reaction function"
-    rffgen[t] - rffgen_a[t] = y_rffgen[1] + (y_rffgen[2] * rff[t - 1] + y_rffgen[3] * rff[t - 2] + y_rffgen[4] * rff[t - 3] + y_rffgen[5] * rff[t - 4]) + (y_rffgen[6] * picnia[t] + y_rffgen[7] * picnia[t - 1] + y_rffgen[8] * picnia[t - 2] + y_rffgen[9] * picnia[t - 3] + y_rffgen[10] * picnia[t - 4]) + (y_rffgen[11] * xgap2[t] + y_rffgen[12] * xgap2[t - 1] + y_rffgen[13] * xgap2[t - 2] + y_rffgen[14] * xgap2[t - 3] + y_rffgen[15] * xgap2[t - 4]) + (y_rffgen[16] * lur[t] + y_rffgen[17] * lur[t - 1] + y_rffgen[18] * lur[t - 2] + y_rffgen[19] * lur[t - 3] + y_rffgen[20] * lur[t - 4]) + (y_rffgen[21] * pcnia[t] + y_rffgen[22] * pcnia[t - 1] + y_rffgen[23] * pcnia[t - 2] + y_rffgen[24] * pcnia[t - 3] + y_rffgen[25] * pcnia[t - 4]) + (y_rffgen[26] * rstar[t] + y_rffgen[27] * rstar[t - 1] + y_rffgen[28] * rstar[t - 2] + y_rffgen[29] * rstar[t - 3] + y_rffgen[30] * rstar[t - 4]) + (y_rffgen[31] * pitarg[t] + y_rffgen[32] * pitarg[t - 1] + y_rffgen[33] * pitarg[t - 2] + y_rffgen[34] * pitarg[t - 3] + y_rffgen[35] * pitarg[t - 4]) + (y_rffgen[36] * lurnat[t] + y_rffgen[37] * lurnat[t - 1] + y_rffgen[38] * lurnat[t - 2] + y_rffgen[39] * lurnat[t - 3] + y_rffgen[40] * lurnat[t - 4]) + (y_rffgen[41] * pcstar[t] + y_rffgen[42] * pcstar[t - 1] + y_rffgen[43] * pcstar[t - 2] + y_rffgen[44] * pcstar[t - 3] + y_rffgen[45] * pcstar[t - 4]) + (y_rffgen[46] * picxfe[t] + y_rffgen[47] * picxfe[t - 1] + y_rffgen[48] * picxfe[t - 2] + y_rffgen[49] * picxfe[t - 3] + y_rffgen[50] * picxfe[t - 4])
     "Value of eff. federal funds rate given by the inertial Taylor rule"
     rffintay[t] - rffintay_a[t] = y_rffintay[3] * rff[t - 1] + (1 - y_rffintay[3]) * (rstar[t] + (picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4 + y_rffintay[1] * ((picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4 - pitarg[t]) + y_rffintay[2] * xgap2[t])
     "Federal funds rate"
-    rffrule[t] - rffrule_a[t] = max(dmpex[t] * rfffix[t] + dmprr[t] * (rrfix[t] + (picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4) + dmptay[t] * rfftay[t] + dmptlr[t] * rfftlr[t] + dmpintay[t] * rffintay[t] + dmpalt[t] * rffalt[t] + dmpgen[t] * rffgen[t], rffmin[t])
+    rffrule[t] - rffrule_a[t] = dmpex[t] * rfffix[t] + dmprr[t] * (rrfix[t] + (picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4) + dmptay[t] * rfftay[t] + dmptlr[t] * rfftlr[t] + dmpintay[t] * rffintay[t] + dmpalt[t] * rffalt[t]
     "Value of eff. federal funds rate given by the Taylor rule with output gap"
     rfftay[t] - rfftay_a[t] = rstar[t] + (picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4 + y_rfftay[1] * ((picxfe[t] + picxfe[t - 1] + picxfe[t - 2] + picxfe[t - 3]) / 4 - pitarg[t]) + y_rfftay[2] * xgap2[t]
     "Value of eff. federal funds rate given by the Taylor rule with unemployment gap"
@@ -1077,11 +1067,11 @@ end
     "Equilibrium real federal funds rate (for monetary policy reaction functions)"
     rstar[t] - rstar_a[t] = rstar[t - 1] + y_rstar[1] * ((rrff[t] - rstar[t - 1]) * drstar[t])
     "Average government corporate income tax rate"
-    trci[t] - trci_a[t] = trcit[t] + y_trci[1] * (trci[t - 1] - trcit[t - 1]) + y_trci[2] * xgap2[t]
+    trci[t] - trci_a[t] = trcit[t] + y_trci[2] * xgap2[t] + y_trci[1] * ((trci[t - 1] - trcit[t - 1]) - y_trci[2] * xgap2[t - 1])
     "Average government tax rate for personal income tax and non-tax receipts"
-    trp[t] - trp_a[t] = y_trp[1] * trpt[t] + y_trp[2] * (trp[t - 1] - trpt[t - 1]) + y_trp[3] * (trp[t - 2] - trpt[t - 2]) + y_trp[4] * xgap2[t - 1]
+    trp[t] - trp_a[t] = y_trp[1] * trpt[t] + y_trp[2] * (trp[t - 1] - trpt[t - 1]) + y_trp[3] * (trp[t - 2] - trpt[t - 2]) + y_trp[4] * xgap2[t]
     "Average government tax rate for personal income tax, trend"
-    trpt[t] - trpt_a[t] = dfpex[t] * trptx[t] + dfpdbt[t] * (trpt[t - 1] + y_trpt[1] * (gfdbtn[t - 1] / xgdpn[t - 1] - gfdrt[t - 1]) + y_trpt[2] * @d(gfdbtn[t - 1] / xgdpn[t - 1] - gfdrt[t - 1], 0, 1)) + dfpsrp[t] * (trpt[t - 1] + y_trpt[3] * (gfsrpn[t - 1] / xgdpn[t - 1] - (gfsrt[t - 1] + 0.005 * xgap2[t - 1])))
+    trpt[t] - trpt_a[t] = dfpex[t] * trptx[t] + dfpdbt[t] * (trpt[t - 1] + y_trpt[1] * (gfdbtnp[t - 1] / xgdpn[t - 1] - gfdrt[t - 1]) + y_trpt[2] * @d(gfdbtnp[t - 1] / xgdpn[t - 1] - gfdrt[t - 1], 0, 1)) + dfpsrp[t] * (trpt[t - 1] + y_trpt[3] * (gfsrpn[t - 1] / xgdpn[t - 1] - (gfsrt[t - 1] + 0.0075 * xgap2[t - 1])))
     "Federal Government budget surplus, residual"
     ugfsrp[t] - ugfsrp_a[t] = y_ugfsrp[1] * (1 - y_ugfsrp[2]) + y_ugfsrp[2] * ugfsrp[t - 1]
     "Multiplicative factor for government civilian employment"
