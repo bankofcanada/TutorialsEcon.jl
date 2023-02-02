@@ -229,7 +229,7 @@ ed .= longbase[p.range];
 Next we set the monetary policy, the fiscal policy and a few other switches.
 
 ```@repl frbus
-set monetary policy (Inertial Taylor Rule)
+# set monetary policy (Inertial Taylor Rule)
 set_mp!(ed, :dmpintay);
 
 # turn off zero bound and policy thresholds;
