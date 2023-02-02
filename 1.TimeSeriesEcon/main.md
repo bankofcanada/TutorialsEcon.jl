@@ -31,12 +31,25 @@ represent these concepts.
 
 ### Frequency
 The abstract type [`Frequency`](@ref) represents the idea of the frequency of a
-time series. All concrete frequencies are special cases. Currently we have three
-calendar frequencies, [`Yearly`](@ref), [`Quarterly`](@ref), and
-[`Monthly`](@ref), which are all defined by a number of periods per year. We
-also have the frequency [`Unit`](@ref), which is not based on the calendar and
-simply counts observations. Typically there's no need to work directly with
-these frequency types.
+time series. All concrete frequencies are special cases. Currently we have four
+calendar frequencies, [`Yearly`](@ref), [`HalfYearly`](@ref), [`Quarterly`](@ref), 
+and [`Monthly`](@ref), which are all defined by a number of periods per year. 
+We have three calendar frequencies which depend on a particular calendar date: 
+[`Weekly`](@ref), [`BDaily`](@ref) and [`Daily`](@ref). Finally We also have the frequency 
+[`Unit`](@ref), which is not based on the calendar and simply counts observations. 
+Typically there's no need to work directly with these frequency types.
+
+#### End-months and end-days
+The frequencies [`Yearly`](@ref), [`HalfYearly`](@ref), and [`Quarterly`](@ref) have 
+implicit default end months. These are 12, 6, and 3, respectively, corresponding to 
+December, June and March. Uses of [`Yearly`](@ref) will in most cases implicitly use 
+`Yearly{12}`. It is also possible to work with  frequencies with different end months, 
+for example, a fiscal year might end in March, in which case a `Yearly{3}` frequency 
+would be used. These end months have implications for frequency conversions (not yet 
+implemented), but can in most cases be ignored.
+
+The Weekly frequency similarly has an implicit default end-day of Sunday. Thus uses of 
+[`Weekly`](@ref) will in most cases implicitly use `Weekly{7}`.
 
 ### Moments and Durations
 In TimeSeriesEcon there are two data types to represent the notion of time. Data
@@ -50,6 +63,50 @@ typeof(2000Q1)
 typeof(2021M5 - 2020M3)
 ```
 
+#### Creating MIT instances
+The most common types of MIT instances can be created using shorthands
+of numbers followed immediately by `Y`, `H1`, `H2`, `Q1`, `Q2`, `Q3`, or `Q4`.
+for example, the second half of 2022 would be `2022H2`.
+
+```@repl tse
+2022Q1
+2022H1
+2020Q3
+2020Y
+```
+
+For variant end-months, append these in square brackets:
+
+```@repl tse
+2022Q1{2}
+2022H1{5}
+2020Y{11} 
+```
+
+For the the higher frequencies, a Date object or string is required to create them:
+
+```@repl tse
+weekly("2022-01-03")
+bdaily("2022-01-03")
+daily("2022-01-03")
+```
+
+Creating a BDaily MIT from a date that lands on a weekend will throw an error, this 
+can be overcome with  passing the `bias` parameter. either `:previous`, `:next`, or `:nearest`.
+
+```@repl tse
+bdaily("2022-01-01", bias=:previous) # 2021-12-31
+```
+
+Daily and bdaily frequencies can also be created using string macros:
+
+```@repl tse
+d"2022-01-03"
+bd"2022-01-03"
+bd"2022-01-01"p # 2021-12-31
+bd"2022-01-01"n # 2022-01-03
+```
+
 ### Arithmetic with Time
 We can perform arithmetic operations with values of type [`MIT`](@ref) and
 [`Duration`](@ref). We just saw that the difference of two [`MIT`](@ref) values
@@ -61,7 +118,6 @@ subtract two [`Duration`](@ref)s, but we're not allowed to add two
 ```@repl tse
 a = 2001Q2 - 2000Q1  # the result is a Duration{Quarterly}
 b = 2001Q2 + 2000Q1  # doesn't make sense!
-2021Q3 + a  # same difference
 ```
 
 When we have an [`MIT`](@ref) plus or minus a plain `Integer`, the latter is
@@ -90,18 +146,23 @@ frequencyof(2000Y)
 frequencyof(2020Q1 - 2019Q3)
 ```
 
-There are a few operations which are valid only for frequencies based on periods
-per year. The function [`ppy`](@ref) returns the number of periods, while
-[`year`](@ref) and [`period`](@ref) return the year and the period number. The
+There are a few operations which are valid only for calendar frequencies. 
+The function [`ppy`](@ref) returns the number of periods, while
+[`TimeSeriesEcon.year`](@ref) and [`period`](@ref) return the year and the period number. The
 periods are numbered from `1` to `ppy`. If we need both, we can use
 [`mit2yp`](@ref).
 ```@repl tse
 t = 2020Q3
 ppy(t)
-year(t)
+TimeSeriesEcon.year(t)
 period(t)
 mit2yp(t)
 ```
+
+Note that `ppy` returns hardcoded numbers for weekly, daily, and bdaily frequencies,
+regardless of the actual year of the MIT passed. In addition, the `TimeSeriesEcon.year`,
+`period`, and `mit2yp` functions do not work for Weekly frequencies, due uncertainty 
+surrounding weeks spanning the end of a year.
 
 ## Ranges
 We can create a range of [`MIT`](@ref) the same way we create ranges of
@@ -132,6 +193,15 @@ This can be helpful when using [`@rec`](@ref) as shown below.
 ```@repl tse
 rng
 reverse(rng)
+```
+
+We can also use the string macros to create ranges of Daily and BDaily frequencies.
+When creating a BDaily range in this way, the first date will be rounded up and 
+the last date rounded down whenever these fall on a weekend.
+
+```@repl tse
+d"2022-01-01:2022-01-31"
+bd"2022-01-01:2022-01-31"
 ```
 
 ## Time Series
@@ -835,5 +905,126 @@ different. [`compare`](@ref) and [`@compare`](@ref) return `true` if the two
 databases compare as equal and `false` otherwise.
 ```@repl tse
 @compare(v1, v2, showequal, ignoremissing, atol=0.01)
+```
+
+## BDaily Holidays
+BDaily TSeries have values falling on weekdays (Monday-Friday). In some use cases 
+there may be `NaN` values on holidays and/or NaN values on other days of
+the year. Some functions take additional arguments which determine the treatment 
+of such `NaN` values.
+
+These options are:
+* `skip_all_nans` - either `true` or `false`.
+* `skip_holidays` - either `true` or `false`.
+* `holidays_map` - either `Nothing` or `or a TSeries{BDaily, Bool}`.
+
+These options are available for the functions 
+[`cleanedvalues`](@ref),  
+[`shift`](@ref), 
+[`lag`](@ref), 
+[`lead`](@ref), 
+[`pct`](@ref), 
+[`diff`](@ref), 
+[`mean`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.mean), 
+[`std`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.std), 
+[`stdm`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.stdm), 
+[`var`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.var), 
+[`varm`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.varm), 
+[`median`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.median), 
+[`quantile`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.quantile), 
+[`cor`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.cor), and 
+[`cov`](https://docs.julialang.org/en/v1/stdlib/Statistics/#Statistics.cov).
+
+The `cleanedvalues` function returns the values of the TSeries, excluding any values
+specified to be excluded as per the three options above.
+
+#### `skip_all_nans`
+When `true`, all NaN values will be skipped for the relevant calculations. For the `shift`, `diff`,
+and `pct` functions, the NaN values will be replaced with the nearest non-NaN value, in the direction
+of the shift. For example, when shifting the data forward (or leading), the replacement values will come from 
+the later period(s), whereas when shifting data backwards (or lagging, or using the `diff` or `pct` functions) 
+the replacement will come from the earlier periods. In this way, the `pct` value for a given day
+will be calculated against the previous non-NaN value.
+
+#### `skip_holidays`
+When `true`, values on holidays will be skipped for the relevant caluclations. For the `shift`, `diff`,
+and `pct` functions, the values on holidays will be replaced with the nearest non-holiday value, similar
+to the treatment of NaN values in the skip_all_nans option. NaN values on non-holidays will still be 
+treated as `NaN`.
+
+Holidays are determined based on the holidays map stored in `TimeSeriesEcon.getoption(:bdaily_holidays_map)`.
+
+#### `holidays_map`
+This option functions like `skip_holidays=true` except that the passed holidays map is used, rather than
+the map stored in `TimeSeriesEcon.getoption(:bdaily_holidays_map)`.
+
+```@repl tse
+ts = TSeries(bd"2022-01-03", collect(1.0:10.0))
+ts[bd"2022-01-07"] = NaN
+pct(ts)
+pct(ts, skip_all_nans=true)
+```
+
+## Options
+The TimeSeriesEcon module has global options which are sometimes referenced when invoking methods within
+the module. There are currently two options: `:bdaily_creation_bias`, and `:bdaily_holidays_map`.
+These can be set and retrieved with the `TimeSeriesEcon.setoption` and `TimeSeriesEcon.getoption` methods.
+
+#### bdaily_creation_bias
+This option affects the behavior when creating BDaily MITs from dates which fall on weekends. The default
+is `:strict`, which results in errors being thrown when creating BDaily MITs from weekend dates.
+Other valid options are: `:previous`, `:next`, and `:nearest`.
+```@repl tse
+bd"2022-01-01"n # 2022-01-03
+TimeSeriesEcon.setoption(:bdaily_creation_bias, :next)
+bd"2022-01-01" # 2022-01-03
+TimeSeriesEcon.setoption(:bdaily_creation_bias, :strict)
+# bd"2022-01-01" # throws an error
+```
+
+#### bdaily_holidays_map
+This option stores a holidays map for use with some TimeSeriesEcon methods. A holidays map is a `TSeries{BDaily, Bool}` spannig from `bd"1970-01-01"` to `bd"2049-12-31"`, although smaller ranges are allowed. The series is `true` for non-holidays, and `false` for holidays. `cleanedvalues(ts, skip_holidays=true)` will therefore return values for the days where the holidays map is `true`.
+
+There are a number of built-in maps based on the Python [Holidays](https://github.com/dr-prodigy/python-holidays) package. To see the available options, call `TimeSeriesEcon.get_holidays_options()`
+
+```@repl tse
+TimeSeriesEcon.get_holidays_options()
+```
+
+You can also consult the [documentation](https://python-holidays.readthedocs.io/en/latest/#available-countries) of the Holidays package.
+
+For countries with different regions available, you can also call it with the two-character country code to get the region options.
+
+```@repl tse
+TimeSeriesEcon.get_holidays_options("CA")
+```
+
+To set the holidays map for a given country/region, use `TimeSeriesEcon.set_holidays_map`:
+
+```@repl tse
+TimeSeriesEcon.set_holidays_map("DK") # Denmark
+TimeSeriesEcon.set_holidays_map("CA", "ON") # Ontario, Canada
+```
+
+!!! note "Good to know"
+    The maps may contain errors; they are maintained by a collection of volunteers.
+    You can modify them by first setting the map, retriving it, then setting it manually:
+    TimeSeriesEcon.set_holidays_map("DK") # Denmark
+    ```@repl tse
+    hm = TimeSeriesEcon.getoption(:bdaily_holidays_map)
+    for i in 1970:2049
+      try
+          d = bdaily("$i-05-05")
+          hm[d] = false
+      catch
+      end
+    end
+    TimeSeriesEcon.setoption(:bdaily_holidays_map, hm)
+    ```
+
+The current holidays map can also be unset with this command:
+
+```@repl tse
+TimeSeriesEcon.clear_holidays_map()
 ```
 
