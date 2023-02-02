@@ -156,7 +156,7 @@ so we load it by calling `include()`, not `using`. We have saved a copy of this 
 ```@repl frbus
 include("load_longbase.jl")
 longbase = load_longbase("longbase_2022-11-29.csv")
-@test size(longbase) == (834, 659) # hide
+@test size(longbase) == (843, 651) # check size
 ```
 
 ## Load `set_policy.jl`
