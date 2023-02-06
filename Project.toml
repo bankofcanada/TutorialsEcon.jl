@@ -22,8 +22,8 @@ TimeSeriesEcon = "8b6756d2-c55c-11ea-2998-5f67ea17da60"
 ZipFile = "a5390f91-8eb1-5f08-bee0-b1d1ffed6cea"
 
 [compat]
-FAME = "0.2.1"
-ModelBaseEcon = "0.4.2"
-StateSpaceEcon = "0.3.2"
-TimeSeriesEcon = "0.4.1"
-julia = "1.6"
+FAME = "0.3"
+ModelBaseEcon = "0.5"
+StateSpaceEcon = "0.4"
+TimeSeriesEcon = "0.5"
+julia = "1.7"

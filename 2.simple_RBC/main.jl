@@ -6,7 +6,7 @@ mypath = dirname(@__FILE__)
 #### Part 1: The model
 
 # It is best to read this part on the web
-# https://bankofcanada.github.io/DocsEcon.jl/dev/Tutorials/simple_RBC/main/#Part-1:-The-model
+# https://bankofcanada.github.io/DocsEcon.jl/dev/Tutorials/2.simple_RBC/main/#Part-1:-The-model
 
 ## ##########################################################################
 #### Part 2: Implementation of the model in `StateSpaceEcon`
@@ -15,13 +15,16 @@ mypath = dirname(@__FILE__)
 
 # We start by installing the packages needed for this tutorial.
 using StateSpaceEcon, ModelBaseEcon, TimeSeriesEcon, Test, Plots, Random, Distributions
-    
+
+# Suppress xformatter error
+Plots._already_warned[:gr] = Set([:xformatter]);
+
 # Fix the random seed for reproducibility.
 Random.seed!(1234)
 nothing
 ### Writing the model file
 # It is best to read this part on the web
-# https://bankofcanada.github.io/DocsEcon.jl/previews/PR2/Tutorials/simple_RBC/main/#Writing-the-model-file
+# https://bankofcanada.github.io/DocsEcon.jl/dev/Tutorials/2.simple_RBC/main/#Writing-the-model-file
 
 ## Loading the model
 
@@ -364,10 +367,10 @@ plot(ss, sim_a, sim_u,
      labels=("SS", "Anticipated", "Unanticipated"),
      legend=[true (false for i = 2:length(m.variables))...],
      linewidth=1.5,   
-     size=(900,600),            # hide
-     xrotation = -20,           # hide
-     xtickfonthalign=:right,    # hide
-     xtickfontvalign=:top,      # hide
+     size=(900,600),
+     xrotation = -20,
+     xtickfonthalign=:right,
+     xtickfontvalign=:top,
     )
 
 # We see that when the shock is anticipated, the variables start to react to them
@@ -430,6 +433,97 @@ back_u = simulate(m, p, exog; fctype=fcnatural, anticipate=false);
 
 @test sim_a ≈ back_a
 @test sim_u ≈ back_u
+
+## ##########################################################################
+## Part 7: Model variants and solvers
+
+# As of version 0.4 of StateSpaceEcon, there are two keyword arguments that
+# control how the model is handled and which solver is used. These are `variant`
+# and `solver`. The currently available variants are `:default` (the model is
+# taken as given), `:linearize` and `:selective_linearize`. Currently there are
+# two solvers available, namely `:stackedtime` (which is the default) and
+# `:firstorder`.
+
+# In order to use the `:linearize` variant, you must first solve for the steady
+# state, as already explained. Once the steady state solution is stored in the
+# model instance, you all [`linearize!`](@ref), which creates the linearization of
+# the model about its steady state and sets the default variant to `:linearize`.
+
+# You can check or change the default variant via `m.variant`.
+
+# Once the linearized model is available, you can use either contnue to use the
+# stacked time solver or you can start using the first order solver. For this you
+# must first call [`solve!`](@ref) with `solver=:firstorder`, after which you can pass
+# `solver=:firstorder` to `simulate` (and other functions that use a solver).
+
+m.variant
+linearize!(m)
+m.variant
+solve!(m, solver = :firstorder)
+m.variant
+
+# Instead of linearizing all the equations, you can linearize only selected
+# equations by creating the variant `:selective_linearize` with the command
+# [`selective_linearize!`](@ref). Once again, the steady state solution must e
+# available for this call to succeed.
+
+selective_linearize!(m)
+m.options.variant
+
+# The equation that will be linearized with this call must be specified in the
+# model file by marking them with the macro `@lin`. For instance:
+
+# ```@julia
+# @lin K[t] + C[t] = A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (1-α) + (1-δ) * (K[t-1]/(1+g))
+# ```
+
+# The model variant can be reset back to the original by assigning it directly.
+
+m.variant = :default
+
+# In total, there are three variants:
+# 1) `:default`: the model as given through its equations
+# 2) `:linearize`: first-order approximation around itssteady state
+# 3) `:selective_linearize`: first-order approximation around its steady state for the equations preceded by the macro `@lin`..
+
+# In addition to the variant, the command [`simulate`](@ref) requires a solver. `StateSpaceEcon.jl` currently has two solvers:
+# 1) The solver `:stackedtime` can be used with any variant. It is the only solver that can be used with `default` and `:selective_linearize`.
+# 2) The solver `:firstorder` can only be used for the variant `:linearize`. In fact, when this solver is specified the `variant` is ignored.
+
+# To get the default solver, simply omit the `solver=` argument of the command [`simulate`](@ref).
+
+# For demonstration purposes, we compare the three models for an unanticipated shock `ea` for the first four quarters by `0.1`.
+
+p = Plan(m, sim_rng)
+exog = zerodata(m,p);
+exog[sim_rng[1:4], :ea] .= 0.1;
+exog1 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :default, solver = :stackedtime);
+exog2 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :selective_linearize, solver = :stackedtime);
+exog3 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :linearize, solver = :firstorder);
+
+# gr(display_type=:inline) # hide
+plot(exog1, exog2, exog3,
+     vars=m.variables,
+     labels=("Stacked-Time", "Selective linearization", "Linearized"),
+     legend=[true (false for i = 2:length(m.variables))...],
+     linewidth=1.5,   
+     size=(900,600),
+     xrotation = -20,
+     xtickfonthalign=:right,
+     xtickfontvalign=:top,
+    )
+
+# ```@setup simple_RBC
+# savefig("irf_variants.png")
+# ```
+
+# [![Impulse Response Graph](irf_variants.png)](irf_variants.png)
+
+# !!! warning "The first-order approximation"
+
+#     For anticipated shocks, the `:firstorder` solver is only available for empty plans.
+#     Empty plans have all the shocks as exogenous and all the variables as endogenous.
+#     For anticipated shocks with non-empty plans, use the `:stackedtime` solver.
 
 ## ##########################################################################
 #### Appendix
