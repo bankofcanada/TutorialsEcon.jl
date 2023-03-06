@@ -827,7 +827,7 @@ the model about its steady state and sets the default variant to `:linearize`.
 
 You can check or change the default variant via `m.variant`.
 
-Once the linearized model is available, you can use either contnue to use the
+Once the linearized model is available, you can use either continue to use the
 stacked time solver or you can start using the first order solver. For this you
 must first call [`solve!`](@ref) with `solver=:firstorder`, after which you can pass
 `solver=:firstorder` to `simulate` (and other functions that use a solver).
@@ -865,7 +865,7 @@ m.variant = :default
 
 In total, there are three variants:
 1) `:default`: the model as given through its equations
-2) `:linearize`: first-order approximation around itssteady state
+2) `:linearize`: first-order approximation around its steady state
 3) `:selective_linearize`: first-order approximation around its steady state for the equations preceded by the macro `@lin`..
 
 In addition to the variant, the command [`simulate`](@ref) requires a solver. `StateSpaceEcon.jl` currently has two solvers:

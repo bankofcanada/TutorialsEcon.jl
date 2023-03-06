@@ -141,7 +141,7 @@ rng
 reverse(rng)
 
 # We can also use the string macros to create ranges of Daily and BDaily frequencies.
-# When creatint a BDaily range in this way, the first date will be rounded up and 
+# When creating a BDaily range in this way, the first date will be rounded up and 
 # the last date rounded down whenever these fall on a weekend.
 d"2022-01-01:2022-01-31"
 bd"2022-01-01:2022-01-31"
@@ -749,7 +749,7 @@ v2.b = "Hello"
 # will be calculated against the previous non-NaN value.
 
 #### `skip_holidays`
-# When `true`, values on holidays will be skipped for the relevant caluclations. For the `shift`, `diff`,
+# When `true`, values on holidays will be skipped for the relevant calculations. For the `shift`, `diff`,
 # and `pct` functions, the values on holidays will be replaced with the nearest non-holiday value, similar
 # to the treatment of NaN values in the skip_all_nans option. NaN values on non-holidays will still be 
 # treated as NaN.
@@ -782,7 +782,7 @@ TimeSeriesEcon.setoption(:bdaily_creation_bias, :strict)
 
 #### bdaily_holidays_map
 # This option stores a holidays map for use with some TimeSeriesEcon methods. A holidays map is a TSeries{BDaily, Bool}
-# spannig from bd"1970-01-01" to bd"2049-12-31", although smaller ranges are allowed. The series is `true` for non-holidays,
+# spanning from bd"1970-01-01" to bd"2049-12-31", although smaller ranges are allowed. The series is `true` for non-holidays,
 # and `false` for holidays. `cleanedvalues(ts, skip_holidays=true)` will therefore return values for the days where the
 # holidays map is `true`.
 
@@ -799,7 +799,7 @@ TimeSeriesEcon.get_holidays_options("CA")
 
 # !!! note "Good to Know"
 #     The maps may contain errors; they are maintained by a collection of volunteers.
-#     You can modify them by first setting the map, retriving it, then setting it manually:
+#     You can modify them by first setting the map, retrieving it, then setting it manually:
 #     TimeSeriesEcon.set_holidays_map("DK") # Denmark
       hm = TimeSeriesEcon.getoption(:bdaily_holidays_map)
       for i in 1970:2049

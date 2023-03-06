@@ -947,7 +947,7 @@ the replacement will come from the earlier periods. In this way, the `pct` value
 will be calculated against the previous non-NaN value.
 
 #### `skip_holidays`
-When `true`, values on holidays will be skipped for the relevant caluclations. For the `shift`, `diff`,
+When `true`, values on holidays will be skipped for the relevant calculations. For the `shift`, `diff`,
 and `pct` functions, the values on holidays will be replaced with the nearest non-holiday value, similar
 to the treatment of NaN values in the skip_all_nans option. NaN values on non-holidays will still be 
 treated as `NaN`.
@@ -983,7 +983,7 @@ TimeSeriesEcon.setoption(:bdaily_creation_bias, :strict)
 ```
 
 #### bdaily_holidays_map
-This option stores a holidays map for use with some TimeSeriesEcon methods. A holidays map is a `TSeries{BDaily, Bool}` spannig from `bd"1970-01-01"` to `bd"2049-12-31"`, although smaller ranges are allowed. The series is `true` for non-holidays, and `false` for holidays. `cleanedvalues(ts, skip_holidays=true)` will therefore return values for the days where the holidays map is `true`.
+This option stores a holidays map for use with some TimeSeriesEcon methods. A holidays map is a `TSeries{BDaily, Bool}` spanning from `bd"1970-01-01"` to `bd"2049-12-31"`, although smaller ranges are allowed. The series is `true` for non-holidays, and `false` for holidays. `cleanedvalues(ts, skip_holidays=true)` will therefore return values for the days where the holidays map is `true`.
 
 There are a number of built-in maps based on the Python [Holidays](https://github.com/dr-prodigy/python-holidays) package. To see the available options, call `TimeSeriesEcon.get_holidays_options()`
 
@@ -1008,7 +1008,7 @@ TimeSeriesEcon.set_holidays_map("CA", "ON") # Ontario, Canada
 
 !!! note "Good to know"
     The maps may contain errors; they are maintained by a collection of volunteers.
-    You can modify them by first setting the map, retriving it, then setting it manually:
+    You can modify them by first setting the map, retrieving it, then setting it manually:
     TimeSeriesEcon.set_holidays_map("DK") # Denmark
     ```@repl tse
     hm = TimeSeriesEcon.getoption(:bdaily_holidays_map)
