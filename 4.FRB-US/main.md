@@ -13,10 +13,10 @@ using TimeSeriesEcon
 
 using Test
 using Plots
-using Random
+using StableRNGs
 
 # Fix the random seed for reproducibility.
-Random.seed!(1234);
+rng = StableRNG(1234);
 
 # We need the model file FRBUS_VAR.jl to be on the search path for modules.
 unique!(push!(LOAD_PATH, realpath("./models"))) # hide
@@ -150,7 +150,7 @@ for now.
 ## Load the Longbase Data
 
 Unfortunately the `longbase` data is loaded from the LONGBASE.TXT file provided in the FRB/US data package.
-The file is read and parsed via the function defined in [`load_longbase.jl`](load_longbase.jl). Note that this is not a module, 
+The file is read and parsed via the function defined in [`load_longbase.jl`](load_longbase.jl). Note that this is not a module,
 so we load it by calling `include()`, not `using`. We have saved a copy of this file as of 2022-11-29, named `longbase_2022-11-29.csv`
 
 ```@repl frbus
@@ -311,7 +311,7 @@ interesting, we add a bit of noise to the true solution.
 
 ```@repl frbus
 endogenous = [v for v in m.variables if !isexog(v)];
-ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03.*randn(length(sim), length(endogenous));
+ed_r[sim, endogenous] .= longbase[sim, endogenous] .+ 0.03.*randn(rng, length(sim), length(endogenous));
 ```
 
 Once again we have to set the monetary policy and the fiscal policy rules, as
@@ -358,7 +358,7 @@ Finally, we can plot the impulse response function to see what we've done.
 
 ```@repl frbus
 # compute the differences between the base case and the shocked simulation.
-dd = MVTSeries(p.range; 
+dd = MVTSeries(p.range;
     d_rff=sol_1.rff - sol_0.rff,
     d_rg10=sol_1.rg10 - sol_0.rg10,
     d_lur=sol_1.lur - sol_0.lur,
@@ -366,7 +366,7 @@ dd = MVTSeries(p.range;
 );
 
 # produce the plot
-plt = plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4), 
+plt = plot(dd, trange=sim, vars=(:d_rff, :d_rg10, :d_lur, :d_pic4),
     legend=false, size=(900, 600),  linewidth=1.5,
     titlefontsize=8
 );
