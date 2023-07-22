@@ -146,7 +146,7 @@ m.auxeqns
 # the above list. At the same time, in equation for `dpgap`, the expression
 # `log(phr[t] * pxp[t])` has been replaced by `aux1[t]`.
 
-m.equations[2]
+get(m.equations, 2)
 
 # A detailed discussion of auxiliary variables and equations is beyond the scope
 # of this tutorial. It suffices to say that we can safely ignore their presence

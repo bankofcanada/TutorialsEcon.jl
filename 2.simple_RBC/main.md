@@ -198,10 +198,10 @@ iterations for the iterative solvers. Auxiliary variables will not be created an
 
 ```julia
 setoption!(model) do o
-    o.tol = 1e-14
+    o.tol = 1e-12
     o.maxiter = 100
     o.substitutions = false
-    o.factorization = :qr
+    o.factorization = :default
     o.verbose = true
 end # options
 ```
@@ -228,7 +228,7 @@ assigns their values. A link between parameters can be created with the macro
     δ = 0.1
     ρ = 0.03
     λ = 0.97
-    γ = 0
+    γ = 0.5
     g = 0.015
     β = @link 1/(1+ρ)
 end # parameters
@@ -306,13 +306,17 @@ equation below, because it is linear.
 \end{aligned}
 ```
 
+We also take the time to rearrange the equations a bit to improve their
+numerical stability. As a simple rule-of-thumb, we try to make sure we don't
+have a model variable in the denominator, or raised to a negative power.
+
 ```julia
 @equations model begin
-    @log 1/(C[t]) = β * (1 / (C[t+1]*(1+g))) * (r[t+1]+1-δ)
-    @log (L[t])^γ = w[t] / C[t]
-    @log r[t] = α * A[t] * (K[t-1]/(1+g)) ^ (α-1) * (L[t]) ^ (1-α)
-    @log w[t] = (1-α) * A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (-α)
-    K[t] + C[t] = A[t] * (K[t-1]/(1+g)) ^ α * (L[t]) ^ (1-α) + (1-δ) * (K[t-1]/(1+g))
+    @log C[t+1] * (1 + g) = β * C[t] * (r[t+1] + 1 - δ)
+    @log (L[t])^γ * C[t] = w[t]
+    @log r[t] * (K[t-1] / (1 + g))^(1 - α) = α * A[t] * L[t]^(1 - α)
+    @log w[t] * L[t]^(α) = (1 - α) * A[t] * (K[t-1] / (1 + g))^α
+    @lin K[t] + C[t] = A[t] * (K[t-1] / (1 + g))^α * (L[t])^(1 - α) + (1 - δ) * (K[t-1] / (1 + g))
     log(A[t]) = λ * log(A[t-1]) + ea[t]
 end # equations
 ```
@@ -464,7 +468,7 @@ automatically switches to Newton-Raphson when it starts to converge.
 
 ```@repl simple_RBC
 clear_sstate!(m)
-sssolve!(m; method = :auto)
+sssolve!(m; method = :auto);
 ```
 
 The function [`sssolve!`](@ref) returns a `Vector{Float64}` containing the
@@ -487,14 +491,14 @@ check_sstate(m)
 We can access the steady state solution via `m.sstate` using the dot notation.
 
 ```@repl simple_RBC
-m.sstate.C
+true_C = m.sstate.C.level
 ```
 
 We can also assign new values to the steady state solution, but we should be
 careful to make sure it remains a valid steady state solution.
 
 ```@repl simple_RBC
-m.sstate.C.level = 1.0050
+m.sstate.C.level = true_C + 0.1
 @test check_sstate(m) > 0
 ```
 
@@ -503,7 +507,7 @@ precision in the `tol` option) will result in one or more equation not being
 satisfied. Let's put back the correct value.
 
 ```@repl simple_RBC
-m.sstate.C.level = 1.0030433070390223
+m.sstate.C.level = true_C
 @test check_sstate(m) == 0
 ```
 
@@ -605,10 +609,10 @@ module simple_RBC
     const model = Model()
     model.flags.ssZeroSlope = true
     setoption!(model) do o
-        o.tol = 1e-14
+        o.tol = 1e-12
         o.maxiter = 100
         o.substitutions = false
-        o.factorization = :qr
+        o.factorization = :default
         o.verbose = true
         o.fctype = fcnatural   # requires StateSpaceEcon
     end # options
@@ -888,6 +892,7 @@ gr(display_type=:inline) # hide
 plot(exog1, exog2, exog3,
      vars=m.variables,
      labels=("Stacked-Time", "Selective linearization", "Linearized"),
+     linestyle=[:solid :dash :solid],
      legend=[true (false for i = 2:length(m.variables))...],
      linewidth=1.5,   
      size=(900,600),            # hide

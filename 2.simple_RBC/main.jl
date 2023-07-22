@@ -14,7 +14,8 @@ mypath = dirname(@__FILE__)
 ### Installing the packages
 
 # We start by installing the packages needed for this tutorial.
-using StateSpaceEcon, ModelBaseEcon, TimeSeriesEcon, Test, Plots, Random, Distributions
+using StateSpaceEcon, ModelBaseEcon, TimeSeriesEcon
+using Test, Plots, Random, Distributions
 
 # Suppress xformatter error
 Plots._already_warned[:gr] = Set([:xformatter]);
@@ -158,19 +159,19 @@ check_sstate(m)
 
 # We can access the steady state solution via `m.sstate` using the dot notation.
 
-m.sstate.C
+true_C = m.sstate.C.level
 
 # We can also assign new values to the steady state solution, but we should be
 # careful to make sure it remains a valid steady state solution.
 
-m.sstate.C.level = 1.0050
+m.sstate.C.level = true_C * 1.01
 @test check_sstate(m) > 0
 
 # As the code above shows, a wrong steady state solution (based on the specified
 # precision in the `tol` option) will result in one or more equation not being
 # satisfied. Let's put back the correct value.
 
-m.sstate.C.level = 1.0030433070390223
+m.sstate.C.level = true_C
 @test check_sstate(m) == 0
 
 # We can examine the entire steady state solution with `printsstate`.
@@ -314,7 +315,7 @@ exog[shocks(m)]
 # also specify the type of final condition we want to impose if we want to diverge
 # from the option setting saved in the model.
 
-irf = simulate(m, p, exog; fctype=fcslope)
+irf = simulate(m, p, exog; fctype=fcnatural)
 
 # We can now take a look at how some of the variables in the model have responded
 # to this shock. We use `plot` from the `Plots` package. We specify the variables
@@ -505,6 +506,7 @@ exog3 = simulate(m, p, exog; deviation = true, anticipate = false, variant = :li
 plot(exog1, exog2, exog3,
      vars=m.variables,
      labels=("Stacked-Time", "Selective linearization", "Linearized"),
+     linestyle=[:solid :dash :solid],
      legend=[true (false for i = 2:length(m.variables))...],
      linewidth=1.5,   
      size=(900,600),
