@@ -13,11 +13,10 @@ using TimeSeriesEcon
 
 using Test
 using Plots
-using Random
-using Distributions
+using StableRNGs
 
-# Fix the random see for reproducibility
-Random.seed!(1234);
+# Fix the random seed for reproducibility.
+rng = StableRNG(1234);
 
 nothing
 ## ##########################################################################
